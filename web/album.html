@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Album</title>
+<style>
+:root{--bg:#0e0e0d;--bg2:#171715;--bg3:#22221f;--tx:#ecebe6;--tx2:#a3a199;--tx3:#6d6b64;--acc:#e8b04a;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+header{padding:48px 20px 22px;max-width:1500px;margin:0 auto}
+h1{font:600 clamp(30px,5vw,48px)/1.05 var(--serif);letter-spacing:-.015em;margin:0 0 8px}
+.meta{color:var(--tx2);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--acc);color:#1a1408;font-weight:600;text-decoration:none;border-radius:999px;padding:8px 16px;font-size:14px;border:0;cursor:pointer}
+.btn.ghost{background:var(--bg3);color:var(--tx)}
+main{max-width:1500px;margin:0 auto;padding:0 20px 60px}
+.grid{position:relative}
+.c{position:absolute;overflow:hidden;background:var(--bg3);border-radius:3px;cursor:zoom-in;display:block}
+.c img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.c:hover img{transform:scale(1.035)}
+.b{position:absolute;right:6px;bottom:6px;font:600 10.5px var(--sans);background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px;color:#fff}
+footer{color:var(--tx3);font-size:12.5px;text-align:center;padding:20px 20px 40px}
+#lb{position:fixed;inset:0;background:#000;z-index:10;display:none}
+#lb.on{display:block}
+#lb img,#lb video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.top{position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:14px 16px;background:linear-gradient(rgba(0,0,0,.65),transparent);z-index:2}
+.top .d{flex:1;font-weight:500;min-width:0}
+.top .d small{display:block;color:var(--tx2);font-weight:400;font-size:12px}
+.lbb{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:999px;height:38px;min-width:38px;padding:0 13px;cursor:pointer;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.sel{appearance:none;-webkit-appearance:none;outline:none;font:500 14px var(--sans)}
+.sel option{color:#000}
+.lbb.on{background:var(--acc);color:#1a1408}
+#im{animation:fadein .35s ease}
+@keyframes fadein{from{opacity:.25}}
+.nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;font-size:26px;width:46px;height:46px;padding:0}
+#pv{left:14px}#nx{right:14px}
+@media (max-width:700px){.nav{display:none}header{padding-top:30px}}
+</style>
+</head>
+<body>
+<header><h1 id="title"></h1><div class="meta"><span id="sub"></span><button class="btn" id="play">▶ Slideshow</button><a class="btn ghost" id="zip" hidden>⬇ Download all</a></div></header>
+<main><div class="grid" id="grid"></div></main>
+<footer>Made with Photo Timeline</footer>
+<div id="lb">
+  <img id="im" alt=""><video id="vd" controls playsinline></video>
+  <div class="top"><button class="lbb" id="x">✕</button><div class="d" id="dt"></div>
+    <button class="lbb" id="lv" hidden>● Live</button>
+    <select class="lbb sel" id="sp" title="Seconds per photo"><option value="2">2 s</option><option value="3">3 s</option><option value="4">4 s</option><option value="5">5 s</option><option value="8">8 s</option></select>
+    <button class="lbb" id="ss" title="Slideshow (Space)">▶</button>
+    <a class="lbb" id="dl" download title="Download">⬇</a></div>
+  <button class="lbb nav" id="pv">‹</button><button class="lbb nav" id="nx">›</button>
+</div>
+<script>
+window.ALBUM = /*__ALBUM__*/null;
+(function () {
+  const A = window.ALBUM || { title: "Album", items: [] }, items = A.items;
+  const $ = s => document.querySelector(s);
+  const M = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const D = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const date = t => { const y = +t.slice(0, 4), m = +t.slice(5, 7), d = +t.slice(8, 10); return `${D[new Date(y, m - 1, d).getDay()]}, ${d} ${M[m - 1]} ${y}`; };
+  document.title = A.title; $("#title").textContent = A.title;
+  const nv = items.filter(i => i.k === "v").length;
+  let when = "";
+  if (items.length) { const a = items[0].t, b = items[items.length - 1].t; when = a.slice(0, 7) === b.slice(0, 7) ? `${M[+a.slice(5, 7) - 1]} ${a.slice(0, 4)}` : a.slice(0, 4) === b.slice(0, 4) ? `${M[+a.slice(5, 7) - 1].slice(0, 3)} – ${M[+b.slice(5, 7) - 1].slice(0, 3)} ${a.slice(0, 4)}` : `${a.slice(0, 4)} – ${b.slice(0, 4)}`; }
+  $("#sub").textContent = [`${items.length - nv} photos`, nv ? `${nv} videos` : "", when].filter(Boolean).join(" · ");
+  if (A.zip) { $("#zip").hidden = false; $("#zip").href = A.zip; }
+
+  function layout() {
+    const g = $("#grid"), W = g.clientWidth, H = innerWidth < 600 ? 120 : 220, GAP = 4;
+    g.innerHTML = ""; let row = [], sum = 0, y = 0;
+    const flush = h => { let x = 0; for (const [it, ar, i] of row) { const w = ar * h, a = document.createElement("a");
+        a.className = "c"; a.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`; a.href = "#"; a.onclick = e => { e.preventDefault(); open(i); };
+        a.innerHTML = `<img loading="lazy" src="${esc(it.th)}" alt="">` + (it.k === "v" ? `<span class="b">▶</span>` : it.live ? `<span class="b">LIVE</span>` : "");
+        g.appendChild(a); x += w + GAP; } y += h + GAP; row = []; sum = 0; };
+    items.forEach((it, i) => { const ar = Math.min(Math.max(it.w / it.h, .45), 3.2); row.push([it, ar, i]); sum += ar;
+      if (sum * H + GAP * (row.length - 1) >= W) flush((W - GAP * (row.length - 1)) / sum); });
+    if (row.length) flush(H);
+    g.style.height = y + "px";
+  }
+  let cur = 0;
+  const im = $("#im"), vd = $("#vd");
+  function open(i) {
+    if (i < 0 || i >= items.length) return; cur = i; const it = items[i];
+    $("#lb").classList.add("on"); document.body.style.overflow = "hidden";
+    vd.pause(); vd.removeAttribute("src"); vd.load(); vd.onended = null;
+    $("#dt").innerHTML = `${date(it.t)}<small>${esc(it.name)}</small>`;
+    $("#dl").href = it.dl || it.src; $("#dl").setAttribute("download", it.name);
+    $("#lv").hidden = !it.live;
+    $("#pv").style.visibility = i > 0 ? "" : "hidden"; $("#nx").style.visibility = i < items.length - 1 ? "" : "hidden";
+    if (it.k === "v") { im.style.display = "none"; vd.style.display = ""; vd.poster = it.th; vd.src = it.src; vd.play().catch(() => {}); }
+    else { vd.style.display = "none"; im.style.display = ""; im.src = it.th; im.style.animation = "none"; void im.offsetWidth; im.style.animation = ""; const f = new Image(); f.onload = () => { if (cur === i) im.src = f.src; }; f.src = it.src;
+      const n = items[i + 1]; if (n && n.k === "p") new Image().src = n.src; }
+  }
+  function close() { stop(); $("#lb").classList.remove("on"); document.body.style.overflow = ""; vd.pause(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  // slideshow — each viewer picks their own speed (remembered on their device)
+  let timer = null, delay = 3;
+  try { delay = +localStorage.getItem("albumShowDelay") || 3; } catch (e) {}
+  $("#sp").value = String(delay);
+  function start() {
+    stop(); $("#ss").classList.add("on"); $("#ss").textContent = "❚❚";
+    timer = setInterval(() => { const it = items[cur]; if (it && it.k === "v" && !vd.ended && !vd.paused) return; open((cur + 1) % items.length); }, delay * 1000);
+  }
+  function stop() { if (timer) clearInterval(timer); timer = null; $("#ss").classList.remove("on"); $("#ss").textContent = "▶"; }
+  $("#ss").onclick = () => timer ? stop() : start();
+  $("#sp").onchange = () => { delay = +$("#sp").value || 3; try { localStorage.setItem("albumShowDelay", delay); } catch (e) {} if (timer) start(); };
+  $("#play").onclick = () => { if (!items.length) return; open(0); start(); const el = $("#lb"); if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); };
+  $("#x").onclick = close; $("#pv").onclick = () => { stop(); open(cur - 1); }; $("#nx").onclick = () => { stop(); open(cur + 1); };
+  $("#lv").onclick = () => { const it = items[cur]; im.style.display = "none"; vd.style.display = ""; vd.src = it.live; vd.play().catch(() => {});
+    vd.onended = () => { vd.style.display = "none"; im.style.display = ""; }; };
+  addEventListener("keydown", e => { if (!$("#lb").classList.contains("on")) return;
+    if (e.key === "Escape") close(); else if (e.key === "ArrowLeft") { stop(); open(cur - 1); } else if (e.key === "ArrowRight") { stop(); open(cur + 1); }
+    else if (e.key === " ") { e.preventDefault(); timer ? stop() : start(); } });
+  let tx = null; $("#lb").addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive: true });
+  $("#lb").addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) open(cur + (dx < 0 ? 1 : -1)); });
+  let w = innerWidth; addEventListener("resize", () => { if (innerWidth !== w) { w = innerWidth; layout(); } });
+  layout();
+})();
+</script>
+</body>
+</html>

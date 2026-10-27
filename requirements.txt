@@ -1,0 +1,6 @@
+Pillow>=10.0
+pillow-heif>=0.16     # iPhone .HEIC photos
+rawpy>=0.19           # camera RAW (.NEF, .CR2, .ARW, .DNG …)
+exifread>=3.0         # dates & GPS inside RAW files
+certifi>=2023.0     # downloading place names on a Mac
+pyobjc-framework-Vision; sys_platform == "darwin"   # Mac only: smart tags with Apple's built-in recognition

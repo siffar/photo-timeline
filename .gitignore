@@ -1,0 +1,17 @@
+# Your personal photo index, thumbnails and albums — never upload
+library/
+*.db
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Downloads and OS clutter
+*.zip
+ffmpeg/
+.DS_Store
+Thumbs.db

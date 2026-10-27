@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Photo Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0e0d; --bg2:#171715; --bg3:#22221f; --bg4:#2c2c28; --line:#2c2c28;
+  --tx:#ecebe6; --tx2:#a3a199; --tx3:#6d6b64;
+  --acc:#e8b04a; --acc-tx:#1a1408; --warn:#e07a5f; --ok:#7fb77e;
+  --serif:"Fraunces", Georgia, serif;
+  --sans:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+a{color:inherit}
+[hidden]{display:none!important}
+.sp{flex:1}
+.muted{color:var(--tx2)}
+.btn{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;color:var(--tx)}
+.btn:hover{background:var(--bg4)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-tx);font-weight:600}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.pri:disabled{opacity:.45;cursor:default;filter:none}
+.btn.ghost{background:none;border-color:transparent;color:var(--tx2)}
+.btn.ghost:hover{color:var(--tx);background:var(--bg3)}
+.btn.danger{color:var(--warn)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+
+/* ── header ── */
+/* layout: sidebar on laptops, bottom tabs on phones (no blur effects — cheap to scroll) */
+:root{--sw:212px;--bh:0px}
+@media (max-width:860px){:root{--sw:0px;--bh:62px}}
+header,main{margin-left:var(--sw)}
+main{padding-bottom:var(--bh)}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+#side{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px 16px;z-index:25}
+#side .brand{padding:2px 10px 18px}
+#tabs{display:flex;flex-direction:column;gap:2px}
+#tabs button{display:flex;align-items:center;gap:11px;background:none;border:0;color:var(--tx2);padding:8px 10px;border-radius:9px;cursor:pointer;text-align:left;font-weight:500}
+#tabs button:hover{background:var(--bg3);color:var(--tx)}
+#tabs button.on{background:var(--bg3);color:var(--tx)}
+#tabs button.on svg{color:var(--acc)}
+#tabs .n{margin-left:auto;font-size:11.5px;color:var(--tx3);font-weight:500}
+.navsep{height:1px;background:var(--line);margin:10px 8px}
+#side #addBtn{width:100%;justify-content:center}
+#bnav{display:none}
+.brand.mob{display:none}
+@media (max-width:860px){
+  #side{display:none}
+  body.nofilters .brand.mob{display:block;font-size:19px}
+  #bnav{display:flex;position:fixed;left:0;right:0;bottom:0;height:var(--bh);background:var(--bg2);border-top:1px solid var(--line);z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  #bnav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:0;color:var(--tx3);font-size:11px;font-weight:500;cursor:pointer}
+  #bnav button.on{color:var(--acc)}
+}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:0 10px;color:var(--tx3);flex:1;min-width:0}
+.search:focus-within{border-color:var(--tx3)}
+.search input{background:none;border:0;outline:none;padding:8px 0;width:100%;min-width:0}
+.fwrap{position:relative}
+#fBtn{display:inline-flex;align-items:center;gap:7px}
+.fcount{background:var(--acc);color:var(--acc-tx);border-radius:999px;font-size:11px;font-weight:700;padding:0 6px;line-height:17px}
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:260px;background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:30}
+.pop .field{margin:0 0 12px}
+.pop select{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:7px 9px;outline:none}
+.hrow{display:flex;align-items:center;gap:14px;padding:11px 20px;flex-wrap:wrap}
+.brand{font:600 22px/1 var(--serif);letter-spacing:-.01em;white-space:nowrap}
+.brand small{font:500 12px var(--sans);color:var(--tx3);margin-left:8px;letter-spacing:0}
+
+.filters{display:flex;gap:8px;align-items:center;flex:1;max-width:560px;min-width:0}
+#count{color:var(--tx3);white-space:nowrap}
+#pill{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px;font-size:12.5px;position:relative;overflow:hidden;max-width:360px}
+#pill .pt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+#pill .bar{position:absolute;left:0;bottom:0;height:2px;background:var(--acc);transition:width .4s}
+#pill .dot{width:7px;height:7px;border-radius:50%;background:var(--acc);flex:none;animation:pulse 1.2s infinite}
+#pill button{background:var(--bg3);border:0;border-radius:999px;padding:3px 9px;cursor:pointer;font-size:12px;color:var(--tx2)}
+@keyframes pulse{50%{opacity:.3}}
+@media (max-width:860px){
+  .hrow{padding:9px 14px;gap:10px}
+  #count{display:none}
+  .filters{order:3;flex-basis:100%;max-width:none}
+  #fBtn .lbl{display:none}
+  #pill{max-width:58vw}
+}
+
+/* ── grids ── */
+#tl{padding:8px 64px 120px 20px}
+@media (max-width:860px){#tl{padding:4px 14px 120px}}
+.month h2{font:600 26px/1.1 var(--serif);letter-spacing:-.015em;margin:34px 0 4px;display:flex;align-items:baseline;gap:10px}
+.month h2 span{font:500 12px var(--sans);color:var(--tx3)}
+.mbody,.jbody{position:relative}
+.day{position:absolute;left:0;font-size:12.5px;color:var(--tx2);font-weight:500;line-height:28px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.dchk{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--tx3);opacity:0;transition:opacity .15s;flex:none;position:relative}
+.day:hover .dchk,body.selecting .dchk{opacity:1}
+.day.allsel .dchk{background:var(--acc);border-color:var(--acc)}
+.cell{position:absolute;display:block;overflow:hidden;background:var(--bg3);border-radius:3px;cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+.cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease,border-radius .2s}
+.cell:hover img{transform:scale(1.035)}
+.cell.noimg::after{content:"no preview";position:absolute;inset:0;display:grid;place-items:center;color:var(--tx3);font-size:11px}
+.cell.noimg img{opacity:0}
+.badge{position:absolute;right:6px;bottom:6px;font:600 10.5px var(--sans);letter-spacing:.02em;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px;color:#fff;pointer-events:none}
+.heart{position:absolute;right:7px;top:5px;color:#fff;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7);pointer-events:none}
+.chk{position:absolute;left:7px;top:7px;width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.92);background:rgba(0,0,0,.25);
+  opacity:0;transition:opacity .15s;cursor:pointer;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.cell:hover .chk,body.selecting .cell .chk{opacity:1}
+.cell.sel{background:color-mix(in srgb,var(--acc) 22%,var(--bg2))}
+.cell.sel img,.cell.sel:hover img{transform:scale(.86);border-radius:5px}
+.cell.sel .chk,.day.allsel .dchk{background:var(--acc);border-color:var(--acc)}
+.cell.sel .chk::after,.day.allsel .dchk::after{content:"";position:absolute;left:5.5px;top:1.5px;width:5px;height:10px;border:solid var(--acc-tx);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.day.allsel .dchk::after{left:4px;top:.5px;width:4px;height:8px}
+body.selecting .cell{cursor:pointer}
+.empty{color:var(--tx2);padding:60px 0;text-align:center;font-size:15px}
+
+/* scrubber */
+#scrub{position:fixed;right:0;top:var(--hh,64px);bottom:0;width:56px;display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 18px;z-index:10;user-select:none}
+#scrub button{background:none;border:0;color:var(--tx3);font:500 11px var(--sans);cursor:pointer;padding:2px 14px 2px 0;text-align:right}
+#scrub button:hover,#scrub button.on{color:var(--tx)}
+#scrub button.on::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--acc);margin-left:5px;vertical-align:1px}
+#bubble{position:fixed;right:64px;z-index:11;background:var(--bg3);border:1px solid var(--line);padding:5px 10px;border-radius:8px;font-weight:500;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .25s}
+@media (max-width:860px){#scrub,#bubble{display:none}}
+
+/* ── panes ── */
+.pane{padding:24px 20px 120px;max-width:1600px}
+.pane h1{font:600 30px/1.1 var(--serif);letter-spacing:-.015em;margin:8px 0 6px}
+.pane .lede{color:var(--tx2);margin:0 0 24px;max-width:740px}
+.pane h3{font:600 19px var(--serif);margin:28px 0 10px;display:flex;align-items:baseline;gap:8px}
+.pane h3 small{font:500 12.5px var(--sans);color:var(--tx3)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px}
+.tiles .cell{position:relative;aspect-ratio:1}
+.dgroup{display:grid;grid-template-columns:120px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.dgroup .cell{position:relative;aspect-ratio:1}
+.dgroup ul{list-style:none;margin:0;padding:0;font-size:12.5px;color:var(--tx2);min-width:0}
+.dgroup li{padding:3px 0;overflow-wrap:anywhere}
+.dgroup li b{color:var(--tx);font-weight:500}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-right:6px;background:var(--bg3);color:var(--tx2);letter-spacing:.02em}
+.tag.acc{background:color-mix(in srgb,var(--acc) 22%,transparent);color:var(--acc)}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin:0 0 20px}
+.stat b{display:block;font:600 26px var(--serif)}
+.stat span{color:var(--tx2);font-size:12.5px}
+#map{position:fixed;left:var(--sw);right:0;bottom:var(--bh);top:var(--hh,64px)}
+.pin{border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);background:#333}
+.pin img{width:100%;height:100%;object-fit:cover;display:block}
+.mapmsg{position:fixed;inset:var(--hh,64px) 0 var(--bh) var(--sw);display:grid;place-items:center;color:var(--tx2)}
+
+/* welcome */
+.welcome{min-height:calc(100vh - 140px);display:grid;place-items:center;text-align:center;padding:40px 20px}
+.welcome h1{font:600 clamp(34px,5vw,56px)/1.05 var(--serif);letter-spacing:-.02em;margin:0 0 14px}
+.welcome p{color:var(--tx2);max-width:540px;margin:0 auto 28px;font-size:15.5px}
+.welcome .btn{font-size:15px;padding:12px 22px}
+.welcome ul{list-style:none;padding:0;margin:34px auto 0;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;color:var(--tx3);font-size:13px}
+
+/* albums */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px 16px}
+@media (max-width:600px){.agrid{grid-template-columns:repeat(2,1fr);gap:16px 10px}.acard h4{font-size:13.5px}.pane{padding:16px 14px 120px}.pane h1{font-size:25px}}
+.acard{cursor:pointer;min-width:0}
+.acard .cov{aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg3);position:relative}
+.acard .cov img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.acard:hover .cov img{transform:scale(1.04)}
+.acard .cov.new{display:grid;place-items:center;border:1.5px dashed var(--bg4);background:none;color:var(--tx2);font-size:13px;text-align:center;padding:20px}
+.acard .cov.new b{display:block;font:600 34px/1 var(--serif);color:var(--tx);margin-bottom:6px}
+.acard h4{margin:9px 0 1px;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acard p{margin:0;color:var(--tx3);font-size:12.5px}
+.acard .cov .tag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--tx2);margin:10px 0 2px}
+.crumbs a{color:var(--tx2);text-decoration:none;padding:2px 6px;border-radius:6px;margin:0 -6px}
+.crumbs a:hover{color:var(--tx);background:var(--bg3)}
+.crumbs span:last-child{color:var(--tx)}
+.crumbs .sep{color:var(--tx3)}
+.acard:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:12px}
+.ahead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.ahead h1{margin:0;cursor:text}
+.ahead .acts{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+
+/* selection bar */
+#selbar{position:fixed;left:calc(50% + var(--sw) / 2);bottom:calc(var(--bh) + 16px);transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;
+  background:var(--bg2);border:1px solid var(--bg4);border-radius:14px;padding:7px;box-shadow:0 12px 40px rgba(0,0,0,.55);max-width:calc(100vw - 24px);overflow-x:auto}
+#selbar .cnt{font-weight:600;padding:0 10px 0 4px;white-space:nowrap}
+#selbar .btn{border-color:transparent}
+@media (max-width:600px){#selbar .lbl{display:none}}
+
+/* modals */
+.ov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--bg2);border:1px solid var(--bg4);border-radius:16px;width:min(520px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal.wide{width:min(780px,100%)}
+.mbody2{padding:22px 24px;overflow-y:auto}
+.modal h2{font:600 24px/1.15 var(--serif);margin:0 0 6px;letter-spacing:-.01em}
+.modal h4{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);margin:22px 0 10px;font-weight:600}
+.modal .lede{color:var(--tx2);margin:0 0 6px}
+.mfoot{display:flex;align-items:center;gap:8px;padding:14px 24px;border-top:1px solid var(--line);flex-wrap:wrap}
+.mfoot .note{color:var(--tx3);font-size:12px;flex:1;min-width:180px}
+.setup h4{margin-top:22px}
+.ov ~ #toasts,body:has(.ov) #toasts{top:20px;bottom:auto}
+.slist{border:1px solid var(--line);border-radius:12px;padding:0 14px}
+.slist .srow{gap:12px}
+.slist .srow small{display:block}
+.srow.fading{opacity:.5}
+.sic{font-size:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.chip.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.chip.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.chip.busy{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
+.confirm{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--tx2);white-space:nowrap}
+.btn.danger-solid{background:var(--warn);border-color:var(--warn);color:#1a0d08;font-weight:600}
+.small{font-size:12.5px;margin:8px 2px 0}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:inline-block;animation:sp .8s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sjob{display:flex;gap:12px;align-items:center;background:var(--bg3);border-radius:12px;padding:12px 14px;margin:14px 0 4px;color:var(--acc)}
+.sjob b{color:var(--tx);font-weight:600;display:block}
+.sjob small{display:block;color:var(--tx3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar{height:4px;background:var(--bg4);border-radius:2px;margin-top:8px;overflow:hidden}
+.sbar i{display:block;height:100%;background:var(--acc);transition:width .5s}
+button.dcard{font:inherit;color:inherit;text-align:left;width:100%}
+.dcard .dtxt{min-width:0;flex:1;display:block}
+.dcard.added{cursor:default;background:color-mix(in srgb,var(--ok) 8%,var(--bg3));border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.dcard.added .box{background:var(--ok);border-color:var(--ok)}
+.dcard .okt{color:var(--ok)!important;font-weight:500}
+.dcard .acct{color:var(--acc)!important;font-weight:500}
+.dcard.pickother{border:1.5px dashed var(--bg4);background:none;align-items:center}
+.dcard.pickother .ic{font-size:20px;color:var(--tx2)}
+@media (max-width:600px){.slist .srow{flex-wrap:wrap}.confirm{white-space:normal;flex-wrap:wrap}}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.dcard{display:flex;gap:11px;align-items:flex-start;background:var(--bg3);border:1.5px solid transparent;border-radius:12px;padding:12px;cursor:pointer;user-select:none}
+.dcard:hover{border-color:var(--bg4)}
+.dcard.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--bg3))}
+.dcard.dis{opacity:.55;cursor:default}
+.dcard .ic{font-size:22px;line-height:1}
+.dcard b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard small{display:block;color:var(--tx2);font-size:12px;overflow-wrap:anywhere}
+.dcard .use{height:4px;background:var(--bg4);border-radius:2px;margin-top:7px;overflow:hidden}
+.dcard .use i{display:block;height:100%;background:var(--tx3)}
+.dcard .box{margin-left:auto;width:18px;height:18px;border-radius:5px;border:1.5px solid var(--tx3);flex:none;position:relative}
+.dcard.on .box{background:var(--acc);border-color:var(--acc)}
+.dcard.on .box::after,.dcard.added .box::after{content:"";position:absolute;left:5px;top:1.5px;width:4px;height:9px;border:solid var(--acc-tx);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.srow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.srow:first-of-type{border-top:0}
+.srow div{min-width:0;flex:1}
+.srow b{font-weight:500}
+.srow small{display:block;color:var(--tx3);font-size:12px;overflow-wrap:anywhere}
+.flist{border:1px solid var(--line);border-radius:10px;max-height:340px;overflow-y:auto;margin-top:10px}
+.flist button{display:flex;width:100%;text-align:left;gap:10px;background:none;border:0;border-top:1px solid var(--line);padding:9px 12px;cursor:pointer}
+.flist button:first-child{border-top:0}
+.flist button:hover{background:var(--bg3)}
+.fpath{font-size:12.5px;color:var(--tx2);overflow-wrap:anywhere;display:flex;gap:8px;align-items:center}
+.pathin{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:6px 8px;outline:none;font:12.5px ui-monospace,Consolas,monospace;color:var(--tx);min-width:0}
+.fpath code{background:var(--bg3);padding:4px 8px;border-radius:6px;color:var(--tx);flex:1}
+.field{display:block;margin:14px 0 0}
+.field span{display:block;font-size:12px;color:var(--tx2);margin-bottom:5px}
+.field input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none}
+.field input[type=text]:focus{border-color:var(--tx3)}
+.chkrow{display:flex;gap:9px;align-items:flex-start;margin-top:14px;cursor:pointer;color:var(--tx2)}
+.chkrow input{margin-top:3px;accent-color:var(--acc)}
+.opt{display:flex;gap:11px;padding:12px;border:1.5px solid var(--line);border-radius:12px;margin-top:10px;cursor:pointer}
+.opt.on{border-color:var(--acc)}
+.opt input{accent-color:var(--acc);margin-top:3px}
+.opt b{display:block}
+.opt small{color:var(--tx2)}
+.alist button{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;padding:8px;border-radius:10px;cursor:pointer;text-align:left}
+.alist button:hover{background:var(--bg3)}
+.alist img,.alist .ph{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--bg4);flex:none}
+.share-url{display:flex;gap:8px;align-items:center;background:var(--bg3);border-radius:10px;padding:10px 12px;margin:16px 0 4px;font-weight:500;overflow-wrap:anywhere}
+.share-url span{flex:1}
+#qr{display:grid;place-items:center;margin:14px 0}
+#qr img{background:#fff;border-radius:12px;width:200px;height:200px}
+
+/* toast */
+#toasts{position:fixed;right:20px;bottom:calc(var(--bh) + 20px);z-index:70;display:flex;flex-direction:column;gap:8px;max-width:min(420px,calc(100vw - 40px))}
+body.selecting #toasts{bottom:calc(var(--bh) + 86px)}
+.toast{background:var(--bg3);border:1px solid var(--bg4);border-radius:12px;padding:12px 14px;box-shadow:0 12px 36px rgba(0,0,0,.5);animation:fade .2s}
+.toast .acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.toast.err{border-color:var(--warn)}
+
+/* ── lightbox ── */
+#lb{position:fixed;inset:0;z-index:50;background:#000;display:flex}
+.lb-stage{position:relative;flex:1;overflow:hidden;touch-action:pan-y;display:grid;place-items:center}
+.lb-stage img,.lb-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+#lbImg{animation:fadein .35s ease}
+.lbsel{appearance:none;-webkit-appearance:none;padding:0 12px;outline:none;font-weight:500}
+.lbsel option{color:#000}
+@keyframes fadein{from{opacity:.25}}
+#lbMsg{position:relative;z-index:1;background:rgba(0,0,0,.75);border-radius:10px;color:var(--tx2);text-align:center;max-width:420px;padding:16px 20px}
+.lb-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:14px 16px;background:linear-gradient(rgba(0,0,0,.65),transparent);z-index:2}
+.lb-top .d{font-weight:500;min-width:0}
+.lb-acts{display:flex;gap:8px;align-items:center}
+.lb-top .d small{display:block;color:var(--tx2);font-size:12px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbb{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;height:36px;min-width:36px;padding:0 12px;cursor:pointer;font-size:14px;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.lbb:hover{background:rgba(255,255,255,.2)}
+.lbb.on{background:var(--acc);color:var(--acc-tx)}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;font-size:26px;width:46px;height:46px;padding:0}
+.lb-prev{left:14px}.lb-next{right:14px}
+#lbInfo{width:360px;background:var(--bg2);border-left:1px solid var(--line);overflow-y:auto;padding:16px 20px 40px;flex:none;animation:islide .2s ease-out}
+@keyframes islide{from{transform:translateX(24px);opacity:.4}}
+.ihead{display:flex;align-items:center;margin:0 0 6px}
+.ihead h4{font:600 21px var(--serif);margin:0;flex:1}
+.lbb.ix{background:var(--bg3);width:32px;height:32px;min-width:32px;padding:0;font-size:13px}
+.iload{display:grid;place-items:center;padding:40px;color:var(--tx3)}
+.icap{font-size:15px;line-height:1.5;margin:10px 0 4px}
+.isec{border-top:1px solid var(--line);padding:14px 0 2px}
+.isec:first-of-type{border-top:0}
+.irow{display:flex;gap:13px;margin-bottom:12px}
+.iic{color:var(--tx3);flex:none;margin-top:1px;display:inline-flex}
+.itx{min-width:0;flex:1}
+.imain{font-weight:500;overflow-wrap:anywhere}
+.isub{color:var(--tx2);font-size:13px;margin-top:1px;overflow-wrap:anywhere}
+.ifaint{color:var(--tx3);font-size:12px;margin-top:4px}
+.iwarn{color:var(--warn);font-size:12.5px;margin-top:5px;line-height:1.4}
+.ilinks{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:5px;font-size:12.5px}
+.ilinks a{color:var(--acc);text-decoration:none}
+.ilinks a:hover{text-decoration:underline}
+.ichips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ichips span,.ichips a{background:var(--bg3);border-radius:7px;padding:3px 9px;font-size:12.5px;color:var(--tx);text-decoration:none}
+.ichips.links a:hover{background:var(--bg4)}
+.ivtext{color:var(--tx2);font-size:12.5px;margin-top:8px;font-style:italic;overflow-wrap:anywhere}
+.hero{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 26px;max-width:640px;margin-top:10px}
+.hero h3{font:600 22px var(--serif);margin:0 0 8px}
+.hero p{color:var(--tx2);margin:0 0 12px}
+.hero ul{color:var(--tx2);margin:0 0 20px;padding-left:18px;font-size:13.5px}
+.hero li{margin:4px 0}
+.ipath{color:var(--tx3);font-size:12px;margin-top:5px;overflow-wrap:anywhere}
+.ibtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ibtns .btn{text-decoration:none}
+.icopies summary{cursor:pointer;display:flex;gap:13px;align-items:center;color:var(--tx2);font-size:13px;list-style:none;margin-bottom:10px}
+.icopies summary::-webkit-details-marker{display:none}
+.icopy{font-size:12px;color:var(--tx3);overflow-wrap:anywhere;margin:0 0 8px 30px}
+#lbInfoBtn{gap:2px}
+@media (max-width:860px){
+  #lb{flex-direction:column}
+  #lbInfo{width:auto;max-height:58vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;margin-top:-18px;position:relative;z-index:4;animation:isheet .22s ease-out;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+  #lbInfo::before{content:"";display:block;width:38px;height:4px;border-radius:2px;background:var(--bg4);margin:0 auto 10px}
+  @keyframes isheet{from{transform:translateY(40px);opacity:.4}}
+  .lb-nav{display:none}
+  .lbb .lbl{display:none}
+  .lb-top .d{flex:1}
+  .lb-top .sp{display:none}
+  .lb-acts{position:fixed;left:0;right:0;bottom:0;justify-content:space-around;padding:12px 10px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.75));z-index:3}
+  #lb.info .lb-acts{position:static;background:none;padding:0}
+}
+</style>
+</head>
+<body>
+<aside id="side">
+  <div class="brand">Timeline</div>
+  <nav id="tabs">
+    <button data-view="timeline" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Timeline</span></button>
+    <button data-view="trips"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l5-9 3 5 2-3 4 7"/><circle cx="17" cy="6" r="2"/></svg><span>Trips</span><span class="n" id="nTrip"></span></button>
+    <button data-view="things"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Things</span><span class="n" id="nThing"></span></button>
+    <button data-view="places"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span>Places</span></button>
+    <button data-view="albums"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg><span>Albums</span><span class="n" id="nAlb"></span></button>
+    <button data-view="favs"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Favourites</span><span class="n" id="nFav"></span></button>
+    <button data-view="memories"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>On this day</span><span class="n" id="nMem"></span></button>
+    <button data-view="map"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg><span>Map</span></button>
+    <div class="navsep"></div>
+    <button data-view="dups"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg><span>Duplicates</span><span class="n" id="nDup"></span></button>
+    <button data-view="review"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Needs review</span><span class="n" id="nRev"></span></button>
+  </nav>
+  <div class="sp"></div>
+  <button class="btn" id="addBtn">＋ Add photos</button>
+</aside>
+<header id="hdr">
+  <div class="hrow">
+    <div class="brand mob">Timeline</div>
+    <div class="filters">
+      <label class="search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search: places, years, months, people…" autocomplete="off"></label>
+      <div class="fwrap">
+        <button class="btn" id="fBtn" title="Filter and sort"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl">Filters</span><span class="fcount" id="fCount" hidden></span></button>
+        <div class="pop" id="fpop" hidden>
+          <label class="field"><span>Show</span><select id="fKind"><option value="">Photos &amp; videos</option><option value="p">Photos only</option><option value="v">Videos only</option></select></label>
+          <label class="field"><span>Folder</span><select id="fSource"></select></label>
+          <label class="field"><span>Camera</span><select id="fCam"></select></label>
+          <div class="field"><span>Order</span><button class="btn" id="order">Newest first</button></div>
+          <button class="btn ghost sm" id="fClear">Clear filters</button>
+        </div>
+      </div>
+    </div>
+    <small id="count"></small>
+    <div class="sp"></div>
+    <div id="pill" hidden><span class="dot"></span><span class="pt"></span><button id="pillStop" title="Stop">Stop</button><i class="bar"></i></div>
+  </div>
+</header>
+<nav id="bnav">
+  <button data-view="timeline" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Photos</span></button>
+  <button data-view="trips"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l5-9 3 5 2-3 4 7"/><circle cx="17" cy="6" r="2"/></svg><span>Trips</span></button>
+  <button data-view="places"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span>Places</span></button>
+  <button data-view="albums"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg><span>Albums</span></button>
+  <button id="moreBtn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg><span>More</span></button>
+</nav>
+
+<main>
+  <section id="v-timeline" class="view"><div id="tl"></div><aside id="scrub"></aside><div id="bubble"></div></section>
+  <section id="v-trips" class="view pane" hidden></section>
+  <section id="v-places" class="view pane" hidden></section>
+  <section id="v-things" class="view pane" hidden></section>
+  <section id="v-albums" class="view pane" hidden></section>
+  <section id="v-favs" class="view pane" hidden></section>
+  <section id="v-memories" class="view pane" hidden></section>
+  <section id="v-map" class="view" hidden><div id="map"></div></section>
+  <section id="v-dups" class="view pane" hidden></section>
+  <section id="v-review" class="view pane" hidden></section>
+</main>
+
+<div id="selbar" hidden>
+  <button class="btn ghost" id="selClear" title="Clear selection (Esc)">✕</button>
+  <span class="cnt" id="selCount"></span>
+  <button class="btn" id="selFav">♥ <span class="lbl">Favourite</span></button>
+  <button class="btn" id="selAlbum">＋ <span class="lbl">Add to album</span></button>
+  <button class="btn" id="selRemove" hidden>− <span class="lbl">Remove from album</span></button>
+  <button class="btn" id="selCopy">⧉ <span class="lbl">Copy to folder</span></button>
+  <button class="btn" id="selZip">⬇ <span class="lbl">Download .zip</span></button>
+  <button class="btn" id="selShow">▶ <span class="lbl">Slideshow</span></button>
+  <button class="btn ghost" id="selAll" title="Select everything in this view (Ctrl+A)"><span class="lbl">Select all</span><span hidden>All</span></button>
+</div>
+
+<div id="lb" hidden>
+  <div class="lb-stage" id="lbStage">
+    <img id="lbImg" alt="">
+    <video id="lbVid" controls playsinline hidden></video>
+    <div id="lbMsg" hidden></div>
+    <div class="lb-top">
+      <button class="lbb" id="lbClose" title="Close (Esc)">✕</button>
+      <div class="d" id="lbDate"></div>
+      <div class="sp"></div>
+      <div class="lb-acts">
+      <button class="lbb" id="lbLive" hidden title="Play the Live Photo">● Live</button>
+      <button class="lbb" id="lbFav" title="Favourite (F)">♡</button>
+      <button class="lbb" id="lbAlb" title="Add to album">＋<span class="lbl">&nbsp;Album</span></button>
+      <a class="lbb" id="lbDl" title="Download original">⬇</a>
+      <select class="lbb lbsel" id="lbSpeed" hidden title="Seconds per photo">
+        <option value="2">2 s</option><option value="3">3 s</option><option value="4">4 s</option><option value="5">5 s</option><option value="8">8 s</option>
+      </select>
+      <button class="lbb" id="lbShuffle" hidden title="Shuffle">⤮</button>
+      <button class="lbb" id="lbShow" title="Slideshow (Space)">▶</button>
+      <button class="lbb" id="lbFull" title="Full screen">⛶</button>
+      <button class="lbb" id="lbInfoBtn" title="Details (I)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg><span class="lbl">&nbsp;Info</span></button>
+      </div>
+    </div>
+    <button class="lbb lb-nav lb-prev" id="lbPrev" title="Previous (←)">‹</button>
+    <button class="lbb lb-nav lb-next" id="lbNext" title="Next (→)">›</button>
+  </div>
+  <aside id="lbInfo" hidden></aside>
+</div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DS = {
+  "exif": ["Camera / phone metadata (EXIF)", false],
+  "quicktime": ["iPhone video metadata", false],
+  "takeout": ["Google Photos metadata (Takeout .json)", false],
+  "filename": ["Read from the file name", false],
+  "video-meta": ["Video metadata", false],
+  "exif-modified": ["EXIF ‘modified’ date — could be when it was edited", true],
+  "file-time": ["File’s modified time — often the download date, so probably wrong", true],
+};
+const S = { all: [], list: [], byId: new Map(), sources: [], cams: [], months: [], newest: true, view: "timeline",
+            stats: {}, sel: new Set(), lastSel: null, albums: [], album: null, ready: false };
+const GAP = 4;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const N = n => (n || 0).toLocaleString();
+const fmtBytes = n => n >= 1e12 ? (n / 1e12).toFixed(1) + " TB" : n >= 1e9 ? (n / 1e9).toFixed(1) + " GB" : n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.round((n || 0) / 1e3) + " KB";
+const fmtDur = s => s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : "";
+const fmtEta = s => s < 90 ? "1 min" : s < 3600 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " h";
+const parts = t => [+t.slice(0, 4), +t.slice(5, 7), +t.slice(8, 10)];
+function dayLabel(key, withYear) {
+  const [y, m, d] = parts(key); const dt = new Date(y, m - 1, d);
+  return `${DAYS[dt.getDay()]}, ${d} ${MONTHS[m - 1].slice(0, 3)}${withYear ? " " + y : ""}`;
+}
+function fullDate(t) {
+  const [y, m, d] = parts(t); const dt = new Date(y, m - 1, d);
+  return `${DAYS[dt.getDay()]}, ${d} ${MONTHS[m - 1]} ${y}` + (t.length > 10 ? ` · ${t.slice(11, 16)}` : "");
+}
+function span(a, b) {
+  if (!a) return "";
+  const [y1, m1] = parts(a), [y2, m2] = parts(b);
+  if (y1 === y2 && m1 === m2) return `${MONTHS[m1 - 1].slice(0, 3)} ${y1}`;
+  if (y1 === y2) return `${MONTHS[m1 - 1].slice(0, 3)} – ${MONTHS[m2 - 1].slice(0, 3)} ${y1}`;
+  return `${y1} – ${y2}`;
+}
+async function get(u) { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function post(u, b = {}) {
+  const r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/json", "X-Timeline": "1" }, body: JSON.stringify(b) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error(j.error || r.status);
+  return j;
+}
+
+/* ───────── toast ───────── */
+function toast(html, acts = [], { err = false, ms } = {}) {
+  const t = document.createElement("div"); t.className = "toast" + (err ? " err" : "");
+  t.innerHTML = `<div>${html}</div>` + (acts.length ? `<div class="acts">${acts.map((a, i) => `<button class="btn sm" data-i="${i}">${esc(a[0])}</button>`).join("")}<button class="btn sm ghost" data-x>Dismiss</button></div>` : "");
+  t.onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.i) acts[+b.dataset.i][1](); t.remove(); };
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), ms || (acts.length ? 15000 : 5000));
+}
+const reveal = body => post("/api/reveal", body).catch(() => {});
+
+/* ───────── load & filter ───────── */
+async function load() {
+  let d;
+  try { d = await get("/api/media"); }
+  catch { $("#tl").innerHTML = `<p class="empty">Can’t reach Photo Timeline. Is its window still open?</p>`; return; }
+  S.sources = d.sources; S.cams = d.cameras; S.stats = d.stats; S.places = d.places || [];
+  S.all = d.items.map(a => ({ id: a[0], t: a[1], k: a[2], w: a[3] || 4, h: a[4] || 3, src: a[5], cam: a[6], lat: a[7], lon: a[8], ds: a[9],
+                              live: a[10], dur: a[11], name: a[12], fav: a[13], txt: a[14], pl: a[15], tags: a[16], faces: a[17], vtext: a[18] }));
+  S.syn = d.synonyms || {};
+  S.byId = new Map(S.all.map(it => [it.id, it]));
+  for (const id of [...S.sel]) if (!S.byId.has(id)) S.sel.delete(id);
+  fillSelect("#fSource", "All folders", S.sources, "src");
+  fillSelect("#fCam", "All cameras", S.cams, "cam");
+  const nd = (S.stats.exact || 0) + (S.stats.similar || 0);
+  $("#nDup").textContent = nd ? N(nd) : "";
+  S.ready = true;
+  $("#nThing").textContent = (n => n ? N(n) : "")(S.all.filter(i => i.tags || i.faces).length);
+  loadAlbums();
+  applyFilters();
+}
+async function loadAlbums() {
+  try { S.albums = await get("/api/albums"); } catch { S.albums = []; }
+  const na = S.albums.filter(a => a.kind === "user" || a.kind === "google").length, nt = S.albums.filter(a => a.kind === "trip").length;
+  $("#nAlb").textContent = na || ""; $("#nTrip").textContent = nt || "";
+  if (!S.album && (S.view === "albums" || S.view === "trips")) render();
+}
+function fillSelect(sel, all, arr, key) {
+  const counts = new Map();
+  for (const it of S.all) counts.set(it[key], (counts.get(it[key]) || 0) + 1);
+  const cur = $(sel).value;
+  const order = arr.map((v, i) => [v, i]).sort((a, b) => (counts.get(b[1]) || 0) - (counts.get(a[1]) || 0));
+  $(sel).innerHTML = `<option value="">${all}</option>` + order.map(([v, i]) => `<option value="${i}">${esc(v)} (${N(counts.get(i))})</option>`).join("");
+  $(sel).value = cur; $(sel).closest("label").hidden = arr.length < 2;
+}
+function hay(it) {
+  return it._h || (it._h = [it.name, S.sources[it.src], S.cams[it.cam] ?? "", it.t.slice(0, 4), MONTHS[+it.t.slice(5, 7) - 1],
+    it.k === "v" ? "video" : "photo", it.live ? "live" : "", it.fav ? "favourite favorite" : "", it.txt || "",
+    it.pl != null ? S.places[it.pl].join(" ") : "",
+    it.tags ? it.tags.split(" ").map(t => t.replace(/_/g, " ") + " " + (S.syn[t] || "")).join(" ") : "",
+    it.faces ? "people person face faces" : "", it.vtext ? "text " + it.vtext : ""].join(" ").toLowerCase());
+}
+/** "mountains" finds "mountain", "beaches" finds "beach", etc. */
+function matchTerm(h, w) {
+  if (h.includes(w)) return true;
+  if (w.length > 4 && w.endsWith("es") && h.includes(w.slice(0, -2))) return true;
+  if (w.length > 3 && w.endsWith("s") && h.includes(w.slice(0, -1))) return true;
+  return false;
+}
+function applyFilters() {
+  const terms = $("#q").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const fs = $("#fSource").value, fc = $("#fCam").value, fk = $("#fKind").value;
+  S.list = S.all.filter(it => (fs === "" || it.src == fs) && (fc === "" || it.cam == fc) && (fk === "" || it.k === fk)
+    && (!terms.length || terms.every(w => matchTerm(hay(it), w))));
+  if (!S.newest) S.list.reverse();
+  const nf = [fs, fc, fk].filter(Boolean).length + (S.newest ? 0 : 1);
+  $("#fCount").hidden = !nf; $("#fCount").textContent = nf;
+  const nv = S.list.filter(i => i.k === "v").length;
+  $("#count").textContent = S.all.length ? `${N(S.list.length - nv)} photos · ${N(nv)} videos` : "";
+  $("#nRev").textContent = (n => n ? N(n) : "")(S.list.filter(i => i.ds === "file-time").length);
+  $("#nMem").textContent = (n => n ? N(n) : "")(memories().length);
+  $("#nFav").textContent = (n => n ? N(n) : "")(S.all.filter(i => i.fav).length);
+  render();
+}
+let ft; for (const id of ["#q", "#fSource", "#fCam", "#fKind"])
+  $(id).addEventListener(id === "#q" ? "input" : "change", () => { clearTimeout(ft); ft = setTimeout(applyFilters, 160); });
+$("#order").onclick = () => { S.newest = !S.newest; $("#order").textContent = S.newest ? "Newest first" : "Oldest first"; applyFilters(); };
+$("#addBtn").onclick = () => openSetup();
+
+/* ───────── views ───────── */
+/* ───────── navigation: browser back, Mac swipe-back, Cmd+[ all work ───────── */
+const NAV = { n: 0, cur: null, scroll: new Map() };
+const navKey = st => JSON.stringify([st.v, st.a, st.p]);
+function navHash(st) {
+  if ((st.v === "places" || st.v === "things") && st.p?.length) return `#${st.v}/` + st.p.map(encodeURIComponent).join("/");
+  if (st.a != null) return `#${st.v}/${st.a}`;
+  return "#" + st.v;
+}
+function parseHash() {
+  const [v, ...rest] = location.hash.slice(1).split("/");
+  if (!$("#v-" + v)) return { v: "timeline", a: null, p: [] };
+  if (v === "places" || v === "things") return { v, a: null, p: rest.map(decodeURIComponent) };
+  return { v, a: rest[0] ? +rest[0] : null, p: [] };
+}
+/** Go somewhere. `up` marks a step down from the page we came from, so “Back” can just undo it. */
+function go(st, { replace = false } = {}) {
+  st = { v: st.v, a: st.a ?? null, p: st.p || [], up: !!st.up, n: replace ? NAV.n : ++NAV.n };
+  if (NAV.cur) NAV.scroll.set(NAV.cur, scrollY);
+  (replace ? history.replaceState : history.pushState).call(history, st, "", navHash(st));
+  apply(st, 1, false);
+}
+addEventListener("popstate", e => {
+  const st = e.state || parseHash();
+  if (NAV.cur) NAV.scroll.set(NAV.cur, scrollY);
+  const dir = (st.n ?? 0) < NAV.n ? -1 : 1; NAV.n = st.n ?? 0;
+  if (MODALS.length) MODALS.slice().forEach(closeModal);
+  if (!$("#lb").hidden) closeLB();
+  apply(st, dir, true);
+});
+async function apply(st, dir, restore) {
+  const changedView = S.view !== st.v;
+  S.view = st.v; S.album = st.a != null ? { id: st.a } : null; S.placeSel = st.p || [];
+  NAV.cur = navKey(st); NAV.up = st.up;
+  $$("button[data-view]").forEach(x => x.classList.toggle("on", x.dataset.view === st.v));
+  $$(".view").forEach(el => el.hidden = el.id !== "v-" + st.v);
+  $(".filters").hidden = (st.v === "albums" || st.v === "dups" || st.v === "trips");
+  document.body.classList.toggle("nofilters", $(".filters").hidden);
+  document.documentElement.style.setProperty("--hh", hdrH() + "px");
+  if (!restore) scrollTo(0, 0);
+  await render();
+  if (restore) scrollTo(0, NAV.scroll.get(NAV.cur) || 0);
+  const el = $("#v-" + st.v);
+  if (el && !changedView && !matchMedia("(prefers-reduced-motion: reduce)").matches && el.animate)
+    el.animate([{ opacity: 0, transform: `translateX(${dir * 28}px)` }, { opacity: 1, transform: "none" }], { duration: 230, easing: "cubic-bezier(.2,.7,.3,1)" });
+}
+/** Step back up: undo the step if we came from the parent page, otherwise jump to the parent. */
+function goUp(parent) {
+  if (NAV.up && NAV.n > 0) history.back();
+  else go(parent, { replace: true });
+}
+function setView(v) { go({ v }); }
+$$("button[data-view]").forEach(b => b.onclick = () => go({ v: b.dataset.view }));
+// phones: the rest of the pages live under “More”
+$("#moreBtn").onclick = () => {
+  const items = [["things", "Things", $("#nThing").textContent], ["favs", "Favourites", $("#nFav").textContent], ["memories", "On this day", $("#nMem").textContent], ["map", "Map", ""],
+                 ["dups", "Duplicates", $("#nDup").textContent], ["review", "Needs review", $("#nRev").textContent]];
+  const ov = modal(`<div class="mbody2"><h2>More</h2><div class="alist">${items.map(([v, t, n]) => `<button data-go="${v}"><div style="flex:1"><b>${t}</b></div><small class="muted">${n || ""}</small></button>`).join("")}
+    <button data-go="add"><div style="flex:1"><b>＋ Add photos</b><br><small class="muted">Drives &amp; folders</small></div></button></div></div>`);
+  $$("[data-go]", ov).forEach(b => b.onclick = () => { closeModal(ov); b.dataset.go === "add" ? openSetup() : go({ v: b.dataset.go }); });
+};
+// filters popover
+$("#fBtn").onclick = e => { e.stopPropagation(); $("#fpop").hidden = !$("#fpop").hidden; };
+document.addEventListener("click", e => { if (!$("#fpop").hidden && !e.target.closest(".fwrap")) $("#fpop").hidden = true; });
+$("#fClear").onclick = () => { $("#fSource").value = ""; $("#fCam").value = ""; $("#fKind").value = ""; if (!S.newest) $("#order").click(); else applyFilters(); };
+function render() {
+  if (!S.ready) return;
+  return ({ timeline: renderTimeline, albums: () => S.album ? renderAlbum(S.album.id) : renderAlbums(),
+     trips: () => S.album ? renderAlbum(S.album.id) : renderTrips(), places: renderPlaces, things: renderThings, favs: renderFavs, memories: renderMemories,
+     map: renderMap, dups: renderDups, review: renderReview })[S.view]();
+  updateSel();
+}
+
+/* ───────── layout (justified rows) ───────── */
+const rowH = () => innerWidth < 600 ? 118 : innerWidth < 1100 ? 170 : 210;
+function layoutRows(items, W, H) {
+  const rows = []; let row = [], sum = 0;
+  for (const it of items) {
+    const ar = Math.min(Math.max(it.w / it.h, 0.45), 3.2);
+    row.push([it, ar]); sum += ar;
+    if (sum * H + GAP * (row.length - 1) >= W) { rows.push({ h: (W - GAP * (row.length - 1)) / sum, cells: row }); row = []; sum = 0; }
+  }
+  if (row.length) rows.push({ h: H, cells: row });
+  return rows;
+}
+function cell(it, ctx) {
+  const a = document.createElement("a"); a.className = "cell" + (S.sel.has(it.id) ? " sel" : ""); a.href = "#"; a.dataset.id = it.id;
+  if (ctx) a._ctx = ctx;
+  const img = new Image(); img.loading = "lazy"; img.decoding = "async"; img.alt = ""; img.src = "/thumb/" + it.id;
+  img.onerror = () => a.classList.add("noimg");
+  a.appendChild(img);
+  a.insertAdjacentHTML("beforeend", `<span class="chk" title="Select"></span>` + (it.fav ? `<span class="heart">♥</span>` : "")
+    + (it.k === "v" ? `<span class="badge">▶ ${fmtDur(it.dur)}</span>` : it.live ? `<span class="badge">LIVE</span>` : ""));
+  return a;
+}
+/** Justified grid of a flat list into `el` (must be in the DOM). */
+function justify(el, items, ctx) {
+  el.className = "jbody"; el.textContent = "";
+  const W = el.clientWidth, H = rowH(); let y = 0;
+  const frag = document.createDocumentFragment();
+  for (const r of layoutRows(items, W, H)) {
+    let x = 0;
+    for (const [it, ar] of r.cells) { const w = ar * r.h; const a = cell(it, ctx); a.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${r.h}px`; frag.appendChild(a); x += w + GAP; }
+    y += r.h + GAP;
+  }
+  el.appendChild(frag); el.style.height = y + "px";
+}
+function group(el, title, sub, items, ctx) {
+  el.insertAdjacentHTML("beforeend", `<h3>${title}${sub ? ` <small>${sub}</small>` : ""}</h3>`);
+  const g = document.createElement("div"); el.appendChild(g); justify(g, items, ctx);
+}
+
+/* ───────── timeline (virtualised by month) ───────── */
+let io;
+function renderTimeline() {
+  const tl = $("#tl"); tl.innerHTML = ""; io && io.disconnect();
+  if (!S.all.length) { renderWelcome(tl); $("#scrub").innerHTML = ""; return; }
+  const months = []; let cm = null, cd = null;
+  for (const it of S.list) {
+    const mk = it.t.slice(0, 7), dk = it.t.slice(0, 10);
+    if (!cm || cm.key !== mk) { cm = { key: mk, days: [], n: 0 }; months.push(cm); cd = null; }
+    if (!cd || cd.key !== dk) { cd = { key: dk, items: [] }; cm.days.push(cd); }
+    cd.items.push(it); cm.n++;
+  }
+  S.months = months;
+  if (!months.length) { tl.innerHTML = `<p class="empty">Nothing matches these filters.</p>`; $("#scrub").innerHTML = ""; return; }
+  io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? paint(e.target._m) : unpaint(e.target._m)), { rootMargin: "1800px 0px" });
+  const cs = getComputedStyle(tl);
+  const W = tl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), H = rowH();
+  const frag = document.createDocumentFragment();
+  for (const m of months) {
+    const sec = document.createElement("section"); sec.className = "month"; sec._m = m;
+    const [y, mo] = parts(m.key);
+    sec.innerHTML = `<h2>${MONTHS[mo - 1]} ${y}<span>${N(m.n)}</span></h2><div class="mbody"></div>`;
+    m.el = sec; m.body = sec.lastElementChild; m.painted = false;
+    let yy = 0;
+    for (const d of m.days) {
+      d.y = yy; yy += 30; d.rows = layoutRows(d.items, W, H);
+      for (const r of d.rows) { r.y = yy; yy += r.h + GAP; }
+      yy += 10;
+    }
+    m.body.style.height = yy + "px";
+    frag.appendChild(sec);
+  }
+  tl.appendChild(frag);
+  months.forEach(m => io.observe(m.el));
+  renderScrub();
+}
+function paint(m) {
+  if (m.painted) return; m.painted = true;
+  const frag = document.createDocumentFragment();
+  for (const d of m.days) {
+    const hd = document.createElement("div"); hd.className = "day"; hd.style.top = d.y + "px"; hd._items = d.items;
+    hd.innerHTML = `<span>${dayLabel(d.key)}${dayPlace(d.items)}${d.items.length > 1 ? ` · ${d.items.length}` : ""}</span><span class="dchk" title="Select this day"></span>`;
+    if (d.items.every(i => S.sel.has(i.id)) && S.sel.size) hd.classList.add("allsel");
+    frag.appendChild(hd);
+    for (const r of d.rows) {
+      let x = 0;
+      for (const [it, ar] of r.cells) { const w = ar * r.h; const a = cell(it); a.style.cssText = `left:${x}px;top:${r.y}px;width:${w}px;height:${r.h}px`; frag.appendChild(a); x += w + GAP; }
+    }
+  }
+  m.body.appendChild(frag);
+}
+function dayPlace(items) {
+  const c = new Map(); let best = null, bn = 0;
+  for (const it of items) if (it.pl != null) { const n = (c.get(it.pl) || 0) + 1; c.set(it.pl, n); if (n > bn) { bn = n; best = it.pl; } }
+  return best == null ? "" : ` · <span style="color:var(--tx)">${esc(S.places[best][0])}</span>`;
+}
+const placeText = pl => pl == null ? "" : S.places[pl].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ");
+function unpaint(m) { if (m.painted) { m.body.textContent = ""; m.painted = false; } }
+
+function renderScrub() {
+  const years = [];
+  for (const m of S.months) { const y = m.key.slice(0, 4); if (years[years.length - 1]?.y !== y) years.push({ y, m }); }
+  const step = Math.max(1, Math.ceil(years.length / Math.max(6, Math.floor((innerHeight - 120) / 22))));
+  $("#scrub").innerHTML = years.filter((_, i) => i % step === 0 || i === years.length - 1).map(o => `<button data-k="${o.m.key}">${o.y}</button>`).join("");
+  $("#scrub").onclick = e => { const k = e.target.dataset?.k; if (k) jumpTo(k); };
+}
+function jumpTo(key) { const m = S.months.find(m => m.key === key); if (m) scrollTo({ top: m.el.getBoundingClientRect().top + scrollY - hdrH() - 8 }); }
+const hdrH = () => $("#hdr").offsetHeight;
+let bt;
+let scrollQueued = false;
+addEventListener("scroll", () => {
+  if (scrollQueued || S.view !== "timeline" || !S.months.length) return;
+  scrollQueued = true; requestAnimationFrame(() => { scrollQueued = false; onTimelineScroll(); });
+}, { passive: true });
+function onTimelineScroll() {
+  const top = hdrH() + 40; let cur = S.months[0];
+  for (const m of S.months) { if (m.el.getBoundingClientRect().top <= top) cur = m; else break; }
+  const [y, mo] = parts(cur.key);
+  const b = $("#bubble"); b.textContent = `${MONTHS[mo - 1]} ${y}`; b.style.opacity = 1;
+  const frac = scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  b.style.top = (hdrH() + 14 + frac * (innerHeight - hdrH() - 60)) + "px";
+  clearTimeout(bt); bt = setTimeout(() => b.style.opacity = 0, 900);
+  $$("#scrub button").forEach(x => x.classList.toggle("on", x.textContent === String(y)));
+}
+let rt, lastW = innerWidth;
+addEventListener("resize", () => {
+  document.documentElement.style.setProperty("--hh", hdrH() + "px");
+  if (innerWidth === lastW) return; lastW = innerWidth;
+  clearTimeout(rt); rt = setTimeout(() => { if (S.view !== "map") render(); }, 200);
+});
+
+/* ───────── welcome ───────── */
+function renderWelcome(el) {
+  el.innerHTML = `<div class="welcome"><div>
+    <h1>All your photos,<br>one timeline.</h1>
+    <p>Pick the drives and folders where your photos live — external SSDs, SD cards, your Google Takeout download, iPhone exports. Photo Timeline finds every photo and video, puts each on the day it was taken, and hides the duplicates. Your files are only read, never changed.</p>
+    <button class="btn pri" id="wGo">Choose drives &amp; folders</button>
+    <ul><li>Reads Google Takeout .json</li><li>iPhone HEIC &amp; Live Photos</li><li>Camera RAW &amp; videos</li><li>Runs only on this computer</li></ul>
+  </div></div>`;
+  $("#wGo").onclick = () => openSetup();
+}
+
+/* ───────── favourites / memories / review ───────── */
+function renderFavs() {
+  const el = $("#v-favs"); const items = S.list.filter(i => i.fav);
+  el.innerHTML = `<h1>Favourites</h1><p class="lede">${items.length ? `${N(items.length)} favourites. Tap ♡ in the photo viewer (or press F) to add more. Favourites from Google Photos come in automatically.` : "Nothing here yet. Open a photo and tap ♡ (or press F) — or select a few and press ♥ Favourite."}</p>`;
+  const by = new Map(); for (const it of items) { const y = it.t.slice(0, 4); if (!by.has(y)) by.set(y, []); by.get(y).push(it); }
+  for (const [y, arr] of by) group(el, y, N(arr.length), arr, items);
+}
+function memories() {
+  const now = new Date(), y0 = now.getFullYear();
+  const md = `${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return S.list.filter(it => it.t.slice(5, 10) === md && +it.t.slice(0, 4) < y0 && it.ds !== "file-time");
+}
+function renderMemories() {
+  const el = $("#v-memories"), now = new Date();
+  let items = memories(), wide = false;
+  if (!items.length) {
+    wide = true;
+    const doy = d => Math.floor((Date.UTC(2001, d.getMonth(), d.getDate()) - Date.UTC(2001, 0, 1)) / 864e5);
+    const t0 = doy(now);
+    items = S.list.filter(it => { const [y, m, d] = parts(it.t); if (y >= now.getFullYear() || it.ds === "file-time") return false;
+      const dd = Math.abs(doy(new Date(2001, m - 1, d)) - t0); return Math.min(dd, 365 - dd) <= 3; });
+  }
+  const by = new Map(); for (const it of items) { const y = it.t.slice(0, 4); if (!by.has(y)) by.set(y, []); by.get(y).push(it); }
+  el.innerHTML = `<h1>On this day</h1><p class="lede">${items.length
+      ? (wide ? `Nothing from exactly ${now.getDate()} ${MONTHS[now.getMonth()]}, so here’s this week in earlier years.` : `${now.getDate()} ${MONTHS[now.getMonth()]}, in earlier years.`)
+      : "Nothing from this week in earlier years yet. Come back tomorrow."}</p>`;
+  for (const y of [...by.keys()].sort().reverse()) { const ago = now.getFullYear() - +y; group(el, y, `${ago} year${ago > 1 ? "s" : ""} ago · ${by.get(y).length}`, by.get(y), items); }
+}
+function renderReview() {
+  const el = $("#v-review"); const items = S.list.filter(i => i.ds === "file-time");
+  el.innerHTML = `<h1>Needs review</h1><p class="lede">${items.length
+      ? `${N(items.length)} items had no date stored inside them and no Google .json next to them, so the file’s modified time was used. For downloads that’s usually the <em>download</em> date, so these may sit on the wrong day. Screenshots, forwarded WhatsApp images and edited exports are the usual suspects.`
+      : "Every item has a trustworthy date. Nice."}</p>`;
+  const by = new Map(); for (const it of items) { const k = S.sources[it.src]; if (!by.has(k)) by.set(k, []); by.get(k).push(it); }
+  for (const [k, arr] of by) group(el, esc(k), N(arr.length), arr, items);
+}
+
+/* ───────── duplicates ───────── */
+async function renderDups() {
+  const el = $("#v-dups"); el.innerHTML = `<h1>Duplicates</h1><p class="lede">Loading…</p>`;
+  const d = await get("/api/duplicates");
+  el.innerHTML = `<h1>Duplicates</h1>
+    <p class="lede">Copies are hidden from your timeline so each moment appears once. Nothing has been deleted. <b>Exact</b> copies are byte-for-byte identical (e.g. the same photo on two drives). <b>Look-alike</b> copies were taken at the same second, look the same, and sit in a different folder — usually a compressed Google Photos copy of an original. The larger one is kept.</p>
+    <div class="stats"><div class="stat"><b>${N(S.stats.exact)}</b><span>exact copies · ${fmtBytes(d.exact_bytes)}</span></div>
+    <div class="stat"><b>${N(S.stats.similar)}</b><span>look-alike copies · ${fmtBytes(d.similar_bytes)}</span></div></div>
+    ${d.total_groups > d.groups.length ? `<p class="lede">Showing the first ${d.groups.length} of ${N(d.total_groups)}.</p>` : ""}`;
+  if (!d.groups.length) { el.insertAdjacentHTML("beforeend", `<p class="lede">No duplicates found.</p>`); return; }
+  const frag = document.createDocumentFragment();
+  for (const g of d.groups) {
+    const it = S.byId.get(g.id); const row = document.createElement("div"); row.className = "dgroup";
+    row.appendChild(it ? cell(it, [it]) : Object.assign(document.createElement("div"), { className: "cell" }));
+    row.insertAdjacentHTML("beforeend", `<ul><li><span class="tag acc">KEPT</span><b>${esc(g.path)}</b> · ${fmtBytes(g.size)}</li>${g.copies.map(x =>
+      `<li><span class="tag">${x.kind === "exact" ? "EXACT" : "LOOK-ALIKE"}</span>${esc(x.path)} · ${fmtBytes(x.size)}</li>`).join("")}</ul>`);
+    frag.appendChild(row);
+  }
+  el.appendChild(frag);
+}
+
+/* ───────── map ───────── */
+let map, cluster, leafletP;
+function loadScript(s) { return new Promise((ok, no) => { const e = document.createElement("script"); e.src = s; e.onload = ok; e.onerror = no; document.head.appendChild(e); }); }
+function loadLeaflet() {
+  if (leafletP) return leafletP;
+  const css = h => { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = h; document.head.appendChild(l); };
+  const B = "https://cdnjs.cloudflare.com/ajax/libs/";
+  css(B + "leaflet/1.9.4/leaflet.min.css"); css(B + "leaflet.markercluster/1.5.3/MarkerCluster.css"); css(B + "leaflet.markercluster/1.5.3/MarkerCluster.Default.css");
+  return leafletP = loadScript(B + "leaflet/1.9.4/leaflet.min.js").then(() => loadScript(B + "leaflet.markercluster/1.5.3/leaflet.markercluster.js"));
+}
+async function renderMap() {
+  const geo = S.list.filter(i => i.lat != null && i.lon != null);
+  const wrap = $("#v-map"); wrap.querySelector(".mapmsg")?.remove();
+  if (!geo.length) { wrap.insertAdjacentHTML("beforeend", `<div class="mapmsg">None of the items in view have a location.</div>`); return; }
+  try { await loadLeaflet(); } catch { leafletP = null; wrap.insertAdjacentHTML("beforeend", `<div class="mapmsg">The map needs an internet connection to load.</div>`); return; }
+  if (!map) {
+    map = L.map("map", { worldCopyJump: true });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
+  }
+  if (cluster) map.removeLayer(cluster);
+  cluster = L.markerClusterGroup({ maxClusterRadius: 50, showCoverageOnHover: false });
+  for (const it of geo) {
+    const m = L.marker([it.lat, it.lon], { icon: L.divIcon({ className: "pin", html: `<img src="/thumb/${it.id}" loading="lazy" alt="">`, iconSize: [46, 46] }) });
+    m.on("click", () => openLB(geo, geo.indexOf(it))); cluster.addLayer(m);
+  }
+  map.addLayer(cluster);
+  setTimeout(() => { map.invalidateSize(); map.fitBounds(cluster.getBounds(), { padding: [40, 40], maxZoom: 14 }); }, 30);
+}
+
+/* ───────── albums ───────── */
+function renderAlbums() {
+  const el = $("#v-albums");
+  const user = S.albums.filter(a => a.kind === "user"), google = S.albums.filter(a => a.kind === "google");
+  const card = albumCard;
+  el.innerHTML = `<h1>Albums</h1><p class="lede">Tick photos anywhere, then press <b>＋ Add to album</b>. Albums can be shared on Wi-Fi or sent as a folder.</p>
+    <div class="agrid">${user.map(card).join("")}<div class="acard" id="newAlb"><div class="cov new"><div><b>＋</b>New album</div></div></div></div>
+    ${google.length ? `<h3>From Google Photos <small>${google.length} albums found in your Takeout</small></h3><div class="agrid">${google.map(card).join("")}</div>` : ""}`;
+  $$(".acard[data-aid]", el).forEach(c => c.onclick = () => openAlbum(+c.dataset.aid));
+  $("#newAlb").onclick = async () => {
+    const name = prompt("Name for the new album:", "New album"); if (name === null) return;
+    const r = await post("/api/albums", { name, ids: [] }); await loadAlbums(); openAlbum(r.id);
+  };
+}
+function albumCard(a) {
+  const trip = a.kind === "trip" || a.kind === "event", m = a.meta || {};
+  const sub = trip ? `${a.kind === "event" ? dayLabel(m.start, true) : `${m.days} day${m.days > 1 ? "s" : ""} · ${span(m.start, m.end)}`} · ${N(a.count)}`
+                   : `${N(a.count)} item${a.count === 1 ? "" : "s"}${a.from ? " · " + span(a.from, a.to) : ""}`;
+  const extra = trip && m.places && m.places.length > 1 ? `<p>${esc(m.places.slice(0, 4).join(" · "))}</p>` : "";
+  return `<div class="acard" data-aid="${a.id}"><div class="cov">${a.cover ? `<img src="/thumb/${a.cover}" loading="lazy" alt="">` : ""}${a.shared ? `<span class="tag">Shared on Wi-Fi</span>` : a.kind === "event" ? `<span class="tag">Event</span>` : ""}</div>
+    <h4>${esc(a.name)}</h4><p>${sub}</p>${extra}</div>`;
+}
+function openAlbum(id) {
+  const a = S.albums.find(x => x.id === id);
+  const v = a && (a.kind === "trip" || a.kind === "event") ? "trips" : "albums";
+  go({ v, a: id, up: S.view === v && !S.album });
+}
+function renderTrips() {
+  const el = $("#v-trips");
+  const trips = S.albums.filter(a => a.kind === "trip" || a.kind === "event").sort((a, b) => (b.meta?.start || "") < (a.meta?.start || "") ? -1 : 1);
+  const nt = trips.filter(a => a.kind === "trip").length, ne = trips.length - nt;
+  el.innerHTML = `<h1>Trips &amp; events</h1><p class="lede">${trips.length
+    ? `${N(nt)} trips and ${N(ne)} big ${ne === 1 ? "day" : "days"}, found from where and when your photos were taken. Rename any of them — your name is kept.`
+    : "No trips yet. Trips appear when your photos have locations (most phone photos do) and you were somewhere other than your usual places for a while."}</p>`;
+  const by = new Map(); for (const a of trips) { const y = (a.meta?.start || "").slice(0, 4); if (!by.has(y)) by.set(y, []); by.get(y).push(a); }
+  for (const [y, arr] of by) el.insertAdjacentHTML("beforeend", `<h3>${y} <small>${[[arr.filter(a => a.kind === "trip").length, "trip"], [arr.filter(a => a.kind === "event").length, "event"]].filter(x => x[0]).map(([n, w]) => `${n} ${w}${n > 1 ? "s" : ""}`).join(" · ")}</small></h3><div class="agrid">${arr.map(albumCard).join("")}</div>`);
+  $$(".acard[data-aid]", el).forEach(c => c.onclick = () => openAlbum(+c.dataset.aid));
+}
+let routeMap;
+async function renderAlbum(id) {
+  const el = S.view === "trips" ? $("#v-trips") : $("#v-albums");
+  let a; try { a = await get("/api/albums/" + id); } catch { S.album = null; return render(); }
+  const isTrip = a.kind === "trip" || a.kind === "event", m = a.meta || {};
+  S.album = a;
+  const items = a.ids.map(i => S.byId.get(i)).filter(Boolean).sort((x, y) => x.t < y.t ? -1 : 1);
+  a.items = items;
+  const nv = items.filter(i => i.k === "v").length;
+  el.innerHTML = `<button class="btn sm" id="aBack" title="Back (Backspace)">‹ ${isTrip ? "Trips" : "Albums"}</button>
+    <div class="ahead"><div><h1 id="aName" title="Click to rename">${esc(a.name)}</h1>
+      <p class="muted" style="margin:6px 0 0">${isTrip ? (a.kind === "event" ? dayLabel(m.start, true) : `${m.days} day${m.days > 1 ? "s" : ""} · ${dayLabel(m.start, true)} – ${dayLabel(m.end, true)}`) + " · " : ""}${N(items.length - nv)} photos${nv ? ` · ${N(nv)} videos` : ""}${!isTrip && items.length ? " · " + span(items[0].t, items[items.length - 1].t) : ""}${a.kind === "google" ? ` · <span class="tag">From Google Photos</span>` : ""}</p>
+      ${isTrip && m.places?.length ? `<p class="muted" style="margin:4px 0 0">${esc(m.places.join(" · "))}</p>` : ""}</div>
+      <div class="acts">
+        ${items.length ? `<button class="btn" id="aPlay">▶ Slideshow</button>
+        <button class="btn pri" id="aShare">${a.share ? "● Shared on Wi-Fi" : "Share on Wi-Fi"}</button>
+        <button class="btn" id="aExport">Make a folder to send</button>
+        <button class="btn" id="aZip">⬇ .zip</button>` : ""}
+        ${isTrip && items.length ? `<button class="btn ghost" id="aKeep" title="Copy into your own album, which never changes automatically">Save as my album</button>` : ""}
+        ${a.kind === "user" ? `<button class="btn ghost danger" id="aDel">Delete album</button>` : ""}
+      </div></div>
+    ${isTrip && items.some(i => i.lat != null) ? `<div id="route" style="height:300px;border-radius:12px;overflow:hidden;margin:0 0 18px;background:var(--bg3)"></div>` : ""}
+    ${items.length ? `<div id="aGrid"></div>` : `<p class="empty">This album is empty. Go to the Timeline, select some photos and press <b>＋ Add to album</b>.</p>`}`;
+  $("#aBack").onclick = () => { loadAlbums(); goUp({ v: S.view }); };
+  if ($("#aKeep")) $("#aKeep").onclick = async () => { const r = await post("/api/albums", { name: a.name, ids: items.map(i => i.id) }); await loadAlbums(); toast(`Saved “${esc(a.name)}” to your albums`, [["Open", () => openAlbum(r.id)]]); };
+  if ($("#route")) drawRoute($("#route"), items);
+  $("#aName").onclick = async () => { const n = prompt("Rename album:", a.name); if (n && n.trim()) { await post(`/api/albums/${id}/rename`, { name: n }); loadAlbums(); renderAlbum(id); } };
+  if (a.kind === "user") $("#aDel").onclick = async () => { if (!confirm(`Delete the album “${a.name}”? Your photos stay where they are.`)) return; await post(`/api/albums/${id}/delete`); await loadAlbums(); goUp({ v: "albums" }); };
+  if (items.length) {
+    justify($("#aGrid"), items, items);
+    $("#aPlay").onclick = () => slideshow(items);
+    $("#aShare").onclick = () => shareDialog(a);
+    $("#aExport").onclick = () => exportDialog(a);
+    $("#aZip").onclick = () => downloadZip(items.map(i => i.id), a.name);
+  }
+  updateSel();
+}
+async function drawRoute(box, items) {
+  try { await loadLeaflet(); } catch { leafletP = null; box.innerHTML = `<p class="muted" style="padding:16px">The route map needs an internet connection.</p>`; return; }
+  if (routeMap) { routeMap.remove(); routeMap = null; }
+  const pts = items.filter(i => i.lat != null);
+  routeMap = L.map(box, { scrollWheelZoom: false });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(routeMap);
+  const line = pts.map(i => [i.lat, i.lon]);
+  L.polyline(line, { color: "#e8b04a", weight: 3, opacity: .85 }).addTo(routeMap);
+  pts.forEach((it, k) => L.circleMarker([it.lat, it.lon], { radius: k === 0 || k === pts.length - 1 ? 7 : 4, color: "#e8b04a", fillColor: k === 0 ? "#7fb77e" : "#e8b04a", fillOpacity: 1, weight: 1 })
+    .on("click", () => openLB(items, items.indexOf(it))).addTo(routeMap));
+  routeMap.fitBounds(L.latLngBounds(line), { padding: [30, 30], maxZoom: 13 });
+}
+
+/* ───────── things: what's in your photos (Mac smart tags) ───────── */
+function renderThingsProgress(j) {
+  const b = $("#v-things .sjob b"), bar = $("#v-things .sbar i");
+  if (b && j.phase === "tagging") b.textContent = `Recognising what’s in your photos · ${N(j.done)} of ${N(j.total)}`;
+  if (bar && j.total) bar.style.width = Math.round(100 * j.done / j.total) + "%";
+}
+const TAG_NAMES = { sunset_sunrise: "Sunset & sunrise", night_sky: "Night sky", __people: "People", __text: "Text & screenshots" };
+const tagName = t => TAG_NAMES[t] || t.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
+let smartSt = null, smartAt = 0;
+async function smartStatus(force) {
+  if (force || !smartSt || Date.now() - smartAt > 8000) { try { smartSt = await get("/api/smart"); smartAt = Date.now(); } catch { smartSt = { supported: false }; } }
+  return smartSt;
+}
+function thingsGroups(items) {
+  const g = new Map(); const add = (k, it) => { if (!g.has(k)) g.set(k, []); g.get(k).push(it); };
+  for (const it of items) {
+    if (it.faces) add("__people", it);
+    if (it.vtext) add("__text", it);
+    if (it.tags) for (const t of it.tags.split(" ")) add(t, it);
+  }
+  return g;
+}
+async function renderThings() {
+  const el = $("#v-things"), sel = S.placeSel || [];
+  const st = await smartStatus(); if (S.view !== "things") return;
+  const tagged = S.list.filter(i => i.tags || i.faces || i.vtext);
+  const job = lastJob && lastJob.running && (lastJob.phase === "tagging" || lastJob.phase === "installing") ? lastJob : null;
+  const progress = job ? `<div class="sjob"><i class="spin"></i><div style="flex:1;min-width:0"><b>${job.phase === "installing" ? "Turning on smart tags…" : `Recognising what’s in your photos · ${N(job.done)} of ${N(job.total)}`}</b>
+      <small>Runs quietly in the background on this Mac${job.eta && job.done > 50 ? ` · about ${fmtEta(job.eta)} left` : ""}</small>
+      ${job.total ? `<div class="sbar"><i style="width:${Math.round(100 * job.done / job.total)}%"></i></div>` : ""}</div></div>` : "";
+  if (!sel.length) {
+    if (!st.supported) {
+      el.innerHTML = `<h1>Things</h1><div class="hero"><h3>Recognising what’s in photos needs a Mac</h3><p>Smart tags use Apple’s built-in image recognition, which runs on the Mac’s own AI chip. Open Photo Timeline on your Mac to use them — everything else works here.</p></div>`; return;
+    }
+    if (!st.installed || st.off) {
+      el.innerHTML = `<h1>Things</h1>${progress}<div class="hero">
+        <h3>Find photos by what’s in them</h3>
+        <p>Search for <b>mountains</b>, <b>beach</b>, <b>snow</b>, <b>sunset</b>, <b>dog</b>, <b>food</b>, <b>bicycle</b>… and find text inside screenshots, tickets and signboards.</p>
+        <ul><li>Runs entirely on this Mac with Apple’s built-in recognition — nothing is uploaded</li>
+          <li>Light: uses the Mac’s AI chip at low priority, about 5–10 minutes per 50,000 photos the first time, then only new photos</li>
+          <li>One-time download of a small connector (~15 MB)</li></ul>
+        ${st.installed || !st.reason || /No module|not-installed|ModuleNotFound/i.test(st.reason) ? "" : `<p class="iwarn">${esc(st.reason)}</p>`}
+        <button class="btn pri" id="smartOn" ${job ? "disabled" : ""}>${job ? "Working…" : "Turn on smart tags"}</button></div>`;
+      $("#smartOn").onclick = async () => {
+        try { const r = await post("/api/smart/enable"); if (!r.started) return toast("Something else is running — try again when it finishes.", [], { err: true }); }
+        catch (e) { return toast(esc(e.message), [], { err: true }); }
+        smartSt = null; kickJob(); setTimeout(renderThings, 1200);
+      };
+      return;
+    }
+    const groups = [...thingsGroups(S.list)].filter(([k, arr]) => arr.length >= 2 || k.startsWith("__"))
+      .sort((a, b) => (b[0].startsWith("__") - a[0].startsWith("__")) || b[1].length - a[1].length);
+    const left = (st.total || 0) - (st.done || 0);
+    el.innerHTML = `<h1>Things</h1>${progress}<p class="lede">${N(tagged.length)} of ${N(S.list.length)} recognised${left > 0 ? ` so far` : ""}. Search works too — try “mountains” or “beach sunset”.</p>
+      ${left > 0 && !job ? `<div class="sjob" style="color:var(--tx2)"><div style="flex:1"><b>${N(left)} photos haven’t been looked at yet</b><small>They’re done automatically after each scan, or start now.</small></div><button class="btn pri sm" id="smartRun">Recognise now</button></div>` : ""}
+      ${groups.length ? `<div class="agrid">${groups.map(([k, arr], i) => { const c = arr.find(x => x.fav && x.k === "p") || arr.find(x => x.k === "p") || arr[0];
+        return `<div class="acard" data-i="${i}" tabindex="0"><div class="cov"><img src="/thumb/${c.id}" loading="lazy" alt=""></div><h4>${esc(tagName(k))}</h4><p>${N(arr.length)}</p></div>`; }).join("")}</div>`
+      : `<p class="empty">${job ? "Results appear here as photos are recognised." : "Nothing recognised yet."}</p>`}
+      <p class="muted small" style="margin-top:30px">Smart tags are on · <a href="#" id="smartOff" style="color:var(--tx2)">turn off</a></p>`;
+    $$(".acard[data-i]", el).forEach(c => { const go_ = () => go({ v: "things", p: [groups[+c.dataset.i][0]], up: true }); c.onclick = go_; c.onkeydown = e => { if (e.key === "Enter") go_(); }; });
+    if ($("#smartRun")) $("#smartRun").onclick = async () => { const r = await post("/api/smart/enable"); if (!r.started) return toast("Something else is running — try again when it finishes.", [], { err: true }); smartSt = null; kickJob(); setTimeout(renderThings, 1200); };
+    $("#smartOff").onclick = async e => { e.preventDefault(); if (!confirm("Turn off smart tags? Existing tags stay; new photos won’t be recognised.")) return; await post("/api/smart/off"); smartSt = null; renderThings(); };
+    return;
+  }
+  const k = sel[0], arr = thingsGroups(S.list).get(k) || [];
+  el.innerHTML = `<button class="btn sm" id="pBack" title="Back (Backspace)">‹ Back</button><div class="crumbs"><a href="#" id="tTop">Things</a><span class="sep">›</span><span>${esc(tagName(k))}</span></div>
+    <h1>${esc(tagName(k))}</h1><p class="lede">${N(arr.length)} photos &amp; videos${arr.length ? " · " + span(arr[arr.length - 1].t, arr[0].t) : ""}</p>`;
+  $("#pBack").onclick = () => goUp({ v: "things" });
+  $("#tTop").onclick = e => { e.preventDefault(); go({ v: "things" }); };
+  const by = new Map(); for (const it of arr) { const y = it.t.slice(0, 4); if (!by.has(y)) by.set(y, []); by.get(y).push(it); }
+  for (const [y, list] of by) group(el, y, N(list.length), list, arr);
+}
+
+/* ───────── places: country → state → city ───────── */
+const PLEVEL = [2, 1, 0];   // place tuple index for country, state, city
+function placeGroups(items, sel) {
+  const here = items.filter(it => { const p = S.places[it.pl]; return sel.every((v, k) => p[PLEVEL[k]] === v); });
+  const groups = new Map();
+  if (sel.length < 3) for (const it of here) { const k = S.places[it.pl][PLEVEL[sel.length]]; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it); }
+  return { here, groups: [...groups].sort((a, b) => b[1].length - a[1].length) };
+}
+/** The first level worth showing: skip “All places → India” when India is the only country, etc. */
+function placeTop(items) {
+  let sel = [];
+  while (sel.length < 2) { const g = placeGroups(items, sel).groups; if (g.length !== 1) break; sel = sel.concat([g[0][0]]); }
+  return sel;
+}
+function renderPlaces() {
+  const el = $("#v-places");
+  const items = S.list.filter(i => i.pl != null);
+  if (!items.length) { el.innerHTML = `<h1>Places</h1><p class="empty">No place names yet. They’re added during a scan for photos with GPS (the one-time download of the place list needs internet).</p>`; return; }
+  const top = placeTop(items);
+  let sel = S.placeSel || [];
+  if (sel.length < top.length) { sel = top; S.placeSel = sel; history.replaceState({ ...history.state, p: sel }, "", navHash({ v: "places", p: sel })); NAV.cur = navKey({ v: "places", a: null, p: sel }); }
+  const level = sel.length;               // 0 countries · 1 states · 2 cities · 3 photos
+  const { here, groups } = placeGroups(items, sel);
+  if (!here.length && level) { S.placeSel = []; return renderPlaces(); }
+  const atTop = level <= top.length;
+  const crumbs = (top.length ? [] : [[0, "All places"]]).concat(sel.map((v, k) => [k + 1, v || "Unknown"]))
+    .map(([l, t], k, arr) => k === arr.length - 1 ? `<span>${esc(t)}</span>` : `<a href="#" data-l="${l}">${esc(t)}</a>`).join(`<span class="sep">›</span>`);
+  const kinds = ["countries", "states", "places"];
+  el.innerHTML = `${atTop ? "" : `<button class="btn sm" id="pBack" title="Back (Backspace)">‹ Back</button>`}
+    <div class="crumbs">${crumbs}</div>
+    <h1>${esc(sel[level - 1] || "Places")}</h1>
+    <p class="lede">${N(here.length)} photos &amp; videos${level < 3 ? ` in ${groups.length} ${groups.length === 1 ? kinds[level].replace(/ies$/, "y").replace(/s$/, "") : kinds[level]}` : ` · ${span(here[here.length - 1].t, here[0].t)}`}</p>`;
+  const toLevel = l => go({ v: "places", p: sel.slice(0, l) });
+  $$(".crumbs a", el).forEach(a => a.onclick = e => { e.preventDefault(); toLevel(+a.dataset.l); });
+  if ($("#pBack", el)) $("#pBack", el).onclick = () => goUp({ v: "places", p: sel.slice(0, -1) });
+  if (level === 3) {
+    const by = new Map(); for (const it of here) { const y = it.t.slice(0, 4); if (!by.has(y)) by.set(y, []); by.get(y).push(it); }
+    for (const [y, arr] of by) group(el, y, N(arr.length), arr, here);
+    return;
+  }
+  const sub = arr => { if (level === 2) return span(arr[arr.length - 1].t, arr[0].t);
+    const n = new Set(arr.map(it => S.places[it.pl][PLEVEL[level + 1]])).size; return `${n} ${level === 0 ? (n === 1 ? "state" : "states") : (n === 1 ? "place" : "places")}`; };
+  el.insertAdjacentHTML("beforeend", `<div class="agrid">${groups.map(([k, arr], i) => {
+    const cover = arr.find(x => x.fav && x.k === "p") || arr.find(x => x.k === "p") || arr[0];
+    return `<div class="acard" data-i="${i}" tabindex="0"><div class="cov"><img src="/thumb/${cover.id}" loading="lazy" alt=""></div><h4>${esc(k || "Unknown")}</h4><p>${N(arr.length)} · ${sub(arr)}</p></div>`; }).join("")}</div>`);
+  el.insertAdjacentHTML("beforeend", `<p class="muted small" style="margin-top:28px">Place names from <a href="https://www.geonames.org/" target="_blank" rel="noopener" style="color:var(--tx2)">GeoNames</a> (CC BY 4.0).</p>`);
+  const open = c => go({ v: "places", p: sel.concat([groups[+c.dataset.i][0]]), up: true });
+  $$(".acard[data-i]", el).forEach(c => { c.onclick = () => open(c); c.onkeydown = e => { if (e.key === "Enter") open(c); }; });
+}
+
+async function shareDialog(a) {
+  let r;
+  try { r = await post(`/api/albums/${a.id}/share`, { on: true }); } catch (e) { return toast("Couldn’t start sharing: " + esc(e.message), [], { err: true }); }
+  const ov = modal(`<div class="mbody2"><h2>Share “${esc(a.name)}” on Wi-Fi</h2>
+    <p class="lede">Friends on the same Wi-Fi can open this link on their phone or laptop to view the album and download photos. It works while Photo Timeline is open on this computer.</p>
+    <div id="qr"></div>
+    <div class="share-url"><span>${esc(r.url)}</span><button class="btn sm" id="cp">Copy</button></div>
+    <p class="muted" style="font-size:12.5px">If Windows asks whether to allow network access, choose <b>Private networks</b>. Friends far away? Use <b>Make a folder to send</b> instead — it works anywhere, no internet needed.</p></div>
+    <div class="mfoot"><button class="btn ghost danger" id="stop">Stop sharing</button><span class="sp"></span><a class="btn" href="${esc(r.local)}" target="_blank" rel="noopener">Preview</a><button class="btn pri" data-close>Done</button></div>`);
+  $("#cp", ov).onclick = () => { navigator.clipboard?.writeText(r.url); $("#cp", ov).textContent = "Copied"; };
+  $("#stop", ov).onclick = async () => { await post(`/api/albums/${a.id}/share`, { on: false }); closeModal(ov); loadAlbums(); renderAlbum(a.id); };
+  ov._onclose = () => { loadAlbums(); if (S.album?.id === a.id) renderAlbum(a.id); };
+  $("#qr", ov).innerHTML = `<img src="/api/qr?text=${encodeURIComponent(r.url)}" alt="QR code for the link">`;
+}
+async function exportDialog(a) {
+  const places = await get("/api/places"); let dest = places.default_dest, quality = "web";
+  const ov = modal(`<div class="mbody2"><h2>Make a folder to send</h2>
+    <p class="lede">Creates a folder with a simple photo page (<b>index.html</b>) plus a <b>.zip</b> of it. Send the .zip by WhatsApp, Google Drive or WeTransfer — friends unzip it and open index.html in any browser, on any device, no app needed.</p>
+    <label class="opt on" data-q="web"><input type="radio" name="q" checked><div><b>Quick to share</b><small>Photos resized to phone/laptop screen size (~0.5 MB each), videos made smaller. Best for sending.</small></div></label>
+    <label class="opt" data-q="original"><input type="radio" name="q"><div><b>Full quality</b><small>Also includes every original file for downloading or printing. Much bigger.</small></div></label>
+    <div class="field"><span>Save it in</span><div class="fpath"><code id="dpath">${esc(dest)}</code><button class="btn sm" id="chg">Change…</button></div></div></div>
+    <div class="mfoot"><span class="note">${N(a.items.length)} items · your originals aren’t changed</span><button class="btn ghost" data-close>Cancel</button><button class="btn pri" id="go">Create</button></div>`);
+  $$(".opt", ov).forEach(o => o.onclick = () => { quality = o.dataset.q; $$(".opt", ov).forEach(x => x.classList.toggle("on", x === o)); $("input", o).checked = true; });
+  $("#chg", ov).onclick = async () => { const p = await pickFolder("Where should the album folder go?", dest); if (p) { dest = p; $("#dpath", ov).textContent = p; } };
+  $("#go", ov).onclick = async () => {
+    try { const r = await post(`/api/albums/${a.id}/export`, { dest, quality }); if (!r.started) return toast("Something else is still running — try again when it’s finished.", [], { err: true }); }
+    catch (e) { return toast(esc(e.message), [], { err: true }); }
+    closeModal(ov); kickJob();
+  };
+}
+
+/* ───────── selection ───────── */
+function viewItems() {
+  if (S.view === "albums" || S.view === "trips") return S.album?.items || [];
+  if (S.view === "places" || S.view === "things") return $$(`#v-${S.view} .cell`).map(c => S.byId.get(+c.dataset.id)).filter(Boolean);
+  if (S.view === "favs") return S.list.filter(i => i.fav);
+  if (S.view === "review") return S.list.filter(i => i.ds === "file-time");
+  if (S.view === "memories") return $$("#v-memories .cell").map(c => S.byId.get(+c.dataset.id)).filter(Boolean);
+  return S.list;
+}
+function toggleSel(ids, on) { for (const id of ids) on ? S.sel.add(id) : S.sel.delete(id); updateSel(); }
+function updateSel() {
+  const n = S.sel.size;
+  document.body.classList.toggle("selecting", n > 0);
+  $("#selbar").hidden = !n;
+  $("#selCount").textContent = `${N(n)} selected`;
+  $("#selRemove").hidden = !(S.album && S.album.kind === "user" && S.view === "albums");
+  const allFav = n && [...S.sel].every(id => S.byId.get(id)?.fav);
+  $("#selFav").innerHTML = `${allFav ? "♡" : "♥"} <span class="lbl">${allFav ? "Unfavourite" : "Favourite"}</span>`;
+  $$(".cell[data-id]").forEach(c => c.classList.toggle("sel", S.sel.has(+c.dataset.id)));
+  $$(".day").forEach(d => d.classList.toggle("allsel", n > 0 && d._items.every(i => S.sel.has(i.id))));
+}
+document.addEventListener("click", e => {
+  const day = e.target.closest(".day");
+  if (day && day._items) { const all = day._items.every(i => S.sel.has(i.id)); toggleSel(day._items.map(i => i.id), !all); return; }
+  const c = e.target.closest(".cell[data-id]"); if (!c) return;
+  e.preventDefault();
+  const id = +c.dataset.id, ctx = c._ctx || S.list;
+  if (e.target.classList.contains("chk") || S.sel.size || e.ctrlKey || e.metaKey) {
+    if (e.shiftKey && S.lastSel != null) {
+      const a = ctx.findIndex(x => x.id === S.lastSel), b = ctx.findIndex(x => x.id === id);
+      if (a >= 0 && b >= 0) { const [lo, hi] = a < b ? [a, b] : [b, a]; toggleSel(ctx.slice(lo, hi + 1).map(x => x.id), true); S.lastSel = id; return; }
+    }
+    toggleSel([id], !S.sel.has(id)); S.lastSel = id; return;
+  }
+  openLB(ctx, ctx.findIndex(x => x.id === id));
+});
+$("#selClear").onclick = () => { S.sel.clear(); updateSel(); };
+$("#selAll").onclick = () => toggleSel(viewItems().map(i => i.id), true);
+$("#selFav").onclick = async () => {
+  const ids = [...S.sel], fav = !ids.every(id => S.byId.get(id)?.fav);
+  await setFav(ids, fav); toast(`${fav ? "Added to" : "Removed from"} favourites: ${N(ids.length)}`);
+};
+async function setFav(ids, fav) {
+  await post("/api/fav", { ids, fav });
+  for (const id of ids) { const it = S.byId.get(id); if (it) { it.fav = fav ? 1 : 0; it._h = null; } }
+  $("#nFav").textContent = (n => n ? N(n) : "")(S.all.filter(i => i.fav).length);
+  for (const id of ids) $$(`.cell[data-id="${id}"]`).forEach(c => { $(".heart", c)?.remove(); if (fav) c.insertAdjacentHTML("beforeend", `<span class="heart">♥</span>`); });
+  updateSel(); if (S.view === "favs") renderFavs();
+}
+$("#selAlbum").onclick = () => addToAlbumDialog([...S.sel]);
+$("#selRemove").onclick = async () => {
+  const ids = [...S.sel]; await post(`/api/albums/${S.album.id}/remove`, { ids }); S.sel.clear(); toast(`Removed ${N(ids.length)} from the album`);
+  loadAlbums(); renderAlbum(S.album.id);
+};
+$("#selCopy").onclick = () => copyDialog([...S.sel]);
+$("#selZip").onclick = () => downloadZip([...S.sel], "Photos");
+$("#selShow").onclick = () => {
+  const ctx = viewItems(), order = new Map(ctx.map((it, i) => [it.id, i]));
+  const items = [...S.sel].map(id => S.byId.get(id)).filter(Boolean)
+    .sort((a, b) => (order.get(a.id) ?? 1e9) - (order.get(b.id) ?? 1e9) || (a.t < b.t ? -1 : 1));
+  slideshow(items);
+};
+async function downloadZip(ids, name) {
+  const r = await post("/api/zip", { ids, name });
+  const a = document.createElement("a"); a.href = r.url; a.download = ""; document.body.appendChild(a); a.click(); a.remove();
+  toast(`Your .zip of ${N(ids.length)} item${ids.length === 1 ? "" : "s"} is downloading (original files, full quality).`);
+}
+function addToAlbumDialog(ids) {
+  const user = S.albums.filter(a => a.kind === "user");
+  const ov = modal(`<div class="mbody2"><h2>Add ${N(ids.length)} to an album</h2>
+    <div class="field"><span>New album</span><div style="display:flex;gap:8px"><input type="text" id="an" placeholder="e.g. Goa trip 2024"><button class="btn pri" id="ac">Create</button></div></div>
+    ${user.length ? `<h4>Or add to</h4><div class="alist">${user.map(a => `<button data-aid="${a.id}">${a.cover ? `<img src="/thumb/${a.cover}" alt="">` : `<span class="ph"></span>`}<div><b>${esc(a.name)}</b><br><small class="muted">${N(a.count)} items</small></div></button>`).join("")}</div>` : ""}</div>
+    <div class="mfoot"><span class="sp"></span><button class="btn ghost" data-close>Cancel</button></div>`);
+  const done = async (aid, name) => {
+    closeModal(ov); await loadAlbums(); S.sel.clear(); updateSel();
+    toast(`Added ${N(ids.length)} to “${esc(name)}”`, [["Open album", () => openAlbum(aid)]]);
+    if (S.view === "albums" && S.album) renderAlbum(S.album.id);
+  };
+  $("#an", ov).focus();
+  const create = async () => { const name = $("#an", ov).value.trim() || "New album"; const r = await post("/api/albums", { name, ids }); done(r.id, name); };
+  $("#ac", ov).onclick = create; $("#an", ov).onkeydown = e => { if (e.key === "Enter") create(); };
+  $$(".alist button", ov).forEach(b => b.onclick = async () => { const aid = +b.dataset.aid; await post(`/api/albums/${aid}/add`, { ids }); done(aid, S.albums.find(a => a.id === aid).name); });
+}
+async function copyDialog(ids) {
+  const places = await get("/api/places"); let dest = places.default_dest;
+  const today = new Date().toISOString().slice(0, 10);
+  const ov = modal(`<div class="mbody2"><h2>Copy ${N(ids.length)} to a folder</h2>
+    <p class="lede">Copies the original files (full quality, with any Live Photo clips). Duplicates are skipped and your originals stay where they are.</p>
+    <div class="field"><span>Copy into</span><div class="fpath"><code id="dpath">${esc(dest)}</code><button class="btn sm" id="chg">Change…</button></div></div>
+    <label class="field"><span>…inside a new folder called (leave empty to copy straight in)</span><input type="text" id="sub" value="Photos ${today}"></label>
+    <label class="chkrow"><input type="checkbox" id="dn" checked><span>Put the date at the start of each file name, so they sort in the order they were taken</span></label></div>
+    <div class="mfoot"><span class="sp"></span><button class="btn ghost" data-close>Cancel</button><button class="btn pri" id="go">Copy</button></div>`);
+  $("#chg", ov).onclick = async () => { const p = await pickFolder("Copy the photos where?", dest); if (p) { dest = p; $("#dpath", ov).textContent = p; } };
+  $("#go", ov).onclick = async () => {
+    try { const r = await post("/api/copy", { ids, dest, subfolder: $("#sub", ov).value.trim(), date_names: $("#dn", ov).checked });
+          if (!r.started) return toast("Something else is still running — try again when it’s finished.", [], { err: true }); }
+    catch (e) { return toast(esc(e.message), [], { err: true }); }
+    closeModal(ov); kickJob();
+  };
+}
+
+/* ───────── modals & folder picker ───────── */
+const MODALS = [];
+function modal(html, { wide } = {}) {
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = `<div class="modal${wide ? " wide" : ""}">${html}</div>`;
+  ov.addEventListener("mousedown", e => { if (e.target === ov) closeModal(ov); });
+  ov.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeModal(ov); });
+  document.body.appendChild(ov); MODALS.push(ov); return ov;
+}
+function closeModal(ov) { if (!ov.isConnected) return; ov.remove(); MODALS.splice(MODALS.indexOf(ov), 1); ov._onclose && ov._onclose(); }
+function pickFolder(title, start) {
+  return new Promise(resolve => {
+    let cur = start || "", result = null;
+    const ov = modal(`<div class="mbody2"><h2>${esc(title)}</h2>
+      <div class="fpath"><input id="fp" class="pathin" spellcheck="false" title="You can type or paste a path and press Enter"><button class="btn sm" id="up">↑ Up</button></div>
+      <div class="flist" id="fl"></div></div>
+      <div class="mfoot"><button class="btn ghost" id="nf">New folder</button><span class="sp"></span><button class="btn ghost" data-close>Cancel</button><button class="btn pri" id="ok">Choose this folder</button></div>`);
+    ov._onclose = () => resolve(result);
+    let parent = null;
+    async function go(p) {
+      const d = await get("/api/fs?path=" + encodeURIComponent(p)); cur = d.path; parent = d.parent;
+      $("#fp", ov).value = cur; $("#fp", ov).placeholder = "This PC";
+      $("#up", ov).disabled = parent === null;
+      $("#ok", ov).disabled = !cur; $("#nf", ov).disabled = !cur;
+      $("#fl", ov).innerHTML = d.dirs.length ? d.dirs.map(x => `<button data-p="${esc(x.path)}">📁 <span>${esc(x.label ? `${x.label} (${x.name})` : x.name)}</span></button>`).join("")
+        : `<p class="muted" style="padding:12px;margin:0">${d.error ? "Can’t open this folder." : "No folders inside."}</p>`;
+      $$("#fl button", ov).forEach(b => b.onclick = () => go(b.dataset.p));
+    }
+    $("#up", ov).onclick = () => parent !== null && go(parent);
+    $("#fp", ov).onkeydown = e => { if (e.key === "Enter") go($("#fp", ov).value.trim()); };
+    $("#ok", ov).onclick = () => { result = cur; closeModal(ov); };
+    $("#nf", ov).onclick = async () => { const n = prompt("New folder name:"); if (n) { const r = await post("/api/mkdir", { path: cur, name: n }); go(r.path); } };
+    go(cur);
+  });
+}
+
+/* ───────── setup: choose drives & folders ───────── */
+async function openSetup() {
+  let d = await get("/api/places");
+  const picked = new Set(), extra = [], removing = new Set(), confirming = new Set();
+  const short = p => d.home && p.startsWith(d.home) ? "~" + p.slice(d.home.length) : p;
+  const ago = t => { if (!t) return "not scanned yet"; const m = (Date.now() / 1000 - t) / 60;
+    return "checked " + (m < 2 ? "just now" : m < 60 ? Math.round(m) + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago"); };
+  const icon = k => ({ removable: "🔌", system: "💻", network: "🌐" }[k] || "🗄️");
+  const kindName = k => ({ removable: "External drive", system: "This Mac / PC", network: "Network drive", internal: "Internal drive" }[k] || "Drive");
+  const ov = modal(`<div class="mbody2 setup">
+      <h2>Your photos</h2>
+      <p class="lede">Choose the drives and folders to include. Photo Timeline only reads them — it never moves, renames or deletes anything.</p>
+      <div id="sJob"></div>
+      <div id="sSrc"></div>
+      <h4>Add a drive</h4><div class="dgrid" id="sDr"></div>
+      <h4>Add a folder</h4><div class="dgrid" id="sFo"></div>
+    </div>
+    <div class="mfoot"><span class="note" id="sNote">System and app folders are skipped automatically.</span>
+      <button class="btn ghost" data-close>Close</button><button class="btn" id="sCheck">Check for new photos</button><button class="btn pri" id="sGo"></button></div>`, { wide: true });
+  const covered = p => d.sources.some(h => p === h.path || p.startsWith(h.path.replace(/[\\/]$/, "") + d.sep));
+  let job = {};
+  function card(x, isDrive) {
+    const added = covered(x.path), on = !added && picked.has(x.path);
+    const use = isDrive && x.total ? `<div class="use"><i style="width:${Math.round(100 * x.used / x.total)}%"></i></div><small>${fmtBytes(x.used)} of ${fmtBytes(x.total)} used</small>` : "";
+    return `<button class="dcard${on ? " on" : ""}${added ? " added" : ""}" data-p="${esc(x.path)}" ${added ? 'aria-disabled="true"' : ""}>
+      <span class="ic">${isDrive ? icon(x.kind) : "📁"}</span>
+      <span class="dtxt"><b>${esc(x.label)}</b><small>${esc(short(x.path))}</small>${isDrive ? `<small>${kindName(x.kind)}</small>` : ""}${use}
+      ${added ? `<small class="okt">✓ In your timeline</small>` : picked.has(x.path) ? `<small class="acct">Will be added</small>` : ""}</span>
+      <span class="box"></span></button>`;
+  }
+  function draw() {
+    // current sources
+    const busyRoot = job.running && job.kind === "scan" ? job.current || "" : "";
+    $("#sSrc", ov).innerHTML = d.sources.length ? `<h4>In your timeline</h4><div class="slist">${d.sources.map(s => {
+      const scanning = busyRoot && (busyRoot === s.path || busyRoot.startsWith(s.path.replace(/[\\/]$/, "") + d.sep));
+      const chip = removing.has(s.path) ? `<span class="chip busy"><i class="spin"></i>Removing…</span>`
+        : scanning ? `<span class="chip busy"><i class="spin"></i>Scanning</span>`
+        : s.connected ? `<span class="chip ok">Connected</span>` : `<span class="chip warn">Not plugged in</span>`;
+      const acts = removing.has(s.path) ? "" : confirming.has(s.path)
+        ? `<span class="confirm">Remove from timeline? <button class="btn sm ghost" data-keep="${esc(s.path)}">Keep</button><button class="btn sm danger-solid" data-yes="${esc(s.path)}">Remove</button></span>`
+        : `<button class="btn sm ghost danger" data-rm="${esc(s.path)}">Remove</button>`;
+      return `<div class="srow${removing.has(s.path) ? " fading" : ""}"><span class="sic">${s.connected ? "📁" : "🔌"}</span>
+        <div><b>${esc(s.label)}</b><small>${esc(short(s.path))}</small><small>${N(s.files)} ${s.files === 1 ? "photo or video" : "photos &amp; videos"} · ${ago(s.last_scan)}</small></div>${chip}${acts}</div>`; }).join("")}</div>
+      ${confirming.size ? `<p class="muted small">Removing only hides those photos from Photo Timeline. The files on your drive stay exactly as they are.</p>` : ""}` : "";
+    $("#sDr", ov).innerHTML = d.drives.length ? d.drives.map(x => card(x, true)).join("") : `<p class="muted">No external drives found. Plug in your SSD or SD card — it appears here automatically.</p>`;
+    $("#sFo", ov).innerHTML = [...d.folders, ...extra].map(x => card(x, false)).join("") +
+      `<button class="dcard pickother" id="sOther"><span class="ic">＋</span><span class="dtxt"><b>Choose a folder…</b><small>Browse to any folder</small></span></button>`;
+    // footer
+    const go = $("#sGo", ov);
+    go.textContent = picked.size ? `Add & scan ${picked.size}` : "Add & scan";
+    go.disabled = !picked.size || (job.running && job.kind !== "scan");
+    $("#sCheck", ov).hidden = !d.sources.length || picked.size > 0 || job.running;
+    // events
+    $$(".dcard[data-p]", ov).forEach(c => c.onclick = () => {
+      if (c.classList.contains("added")) return;
+      const p = c.dataset.p; picked.has(p) ? picked.delete(p) : picked.add(p); draw();
+    });
+    $("#sOther", ov).onclick = async () => {
+      const p = await pickFolder("Choose a folder with photos", d.home); if (!p) return;
+      if (covered(p)) return toast("That folder is already in your timeline.");
+      if (!extra.find(x => x.path === p) && !d.folders.find(x => x.path === p)) extra.push({ path: p, label: p.split(/[\\/]/).filter(Boolean).pop() || p });
+      picked.add(p); draw();
+    };
+    $$("[data-rm]", ov).forEach(b => b.onclick = () => { confirming.add(b.dataset.rm); draw(); });
+    $$("[data-keep]", ov).forEach(b => b.onclick = () => { confirming.delete(b.dataset.keep); draw(); });
+    $$("[data-yes]", ov).forEach(b => b.onclick = async () => {
+      const path = b.dataset.yes, src = d.sources.find(s => s.path === path);
+      confirming.delete(path); removing.add(path); draw();
+      try {
+        const r = await post("/api/sources/remove", { path });
+        toast(`Removed “${esc(src?.label || path)}” from your timeline.${r.resumed ? " Scanning the rest continues." : ""}`);
+      } catch (e) { toast("Couldn’t remove: " + esc(e.message), [], { err: true }); }
+      removing.delete(path); d = await get("/api/places"); draw(); load(); kickJob();
+    });
+  }
+  function drawJob() {
+    const el = $("#sJob", ov);
+    if (!job.running) { el.innerHTML = ""; return; }
+    const pct = job.total ? Math.round(100 * job.done / job.total) : null;
+    const t = job.phase === "finding" ? `Looking for photos… ${N(job.found)} found`
+      : job.phase === "processing" && job.total ? `Reading ${N(job.done)} of ${N(job.total)} new files${job.eta && job.done > 30 ? ` · about ${fmtEta(job.eta)} left` : ""}`
+      : job.phase === "finishing" ? (job.message || "Finding duplicates, trips and places…") : (job.label || "Working") + "…";
+    el.innerHTML = `<div class="sjob"><i class="spin"></i><div style="flex:1;min-width:0"><b>${esc(t)}</b>
+      ${job.current ? `<small>${esc(short(job.current))}</small>` : ""}<div class="sbar"><i style="width:${pct ?? 0}%"></i></div></div>
+      <button class="btn sm" id="sStop">Stop</button></div>`;
+    $("#sStop", ov).onclick = () => post("/api/job/cancel");
+  }
+  let last = null;
+  const tick = async () => {
+    try { job = await get("/api/job"); } catch { return; }
+    if (last && last.running && !job.running) { d = await get("/api/places"); draw(); }
+    if (!last || last.running !== job.running || last.current !== job.current) draw();
+    last = job; drawJob();
+  };
+  const timer = setInterval(tick, 1000); ov._onclose = () => clearInterval(timer);
+  $("#sGo", ov).onclick = async () => {
+    try {
+      const r = await post("/api/sources", { add: [...picked] });
+      if (!r.started) return toast("Something is still running — try again when it finishes.", [], { err: true });
+    } catch (e) { return toast(esc(e.message), [], { err: true }); }
+    toast(`Adding ${picked.size} place${picked.size > 1 ? "s" : ""} — new photos appear as they’re read.`);
+    picked.clear(); extra.length = 0; d = await get("/api/places"); kickJob(); tick();
+  };
+  $("#sCheck", ov).onclick = async () => { const r = await post("/api/scan"); if (r.started) { kickJob(); tick(); } };
+  draw(); tick();
+}
+
+/* ───────── background job progress ───────── */
+let lastJob = null, pollT;
+document.addEventListener("visibilitychange", () => { if (!document.hidden) kickJob(); });
+function kickJob() { clearTimeout(pollT); setTimeout(pollJob, 250); }
+async function pollJob() {
+  clearTimeout(pollT);
+  let j; try { j = await get("/api/job"); } catch { pollT = setTimeout(pollJob, 3000); return; }
+  renderPill(j);
+  if (lastJob && j.id && (lastJob.id !== j.id || lastJob.running) && !j.running && j.status) onJobDone(j);
+  if (j.running && j.kind === "scan" && j.phase === "processing" && S.all.length < 60 && j.done - (S._rel || 0) >= 80) { S._rel = j.done; load(); }
+  if (j.running && j.phase === "tagging" && S.view === "things" && j.done - (S._trel || 0) >= Math.max(200, j.total / 10)) { S._trel = j.done; load(); }
+  if (j.running && (j.phase === "tagging" || j.phase === "installing") && S.view === "things" && !(S.placeSel || []).length) renderThingsProgress(j);
+  lastJob = j;
+  pollT = setTimeout(pollJob, document.hidden ? 20000 : j.running ? 1000 : 5000);
+}
+function renderPill(j) {
+  const p = $("#pill"); if (!j.running) { p.hidden = true; return; }
+  p.hidden = false;
+  let t = j.label + "…", frac = null;
+  if (j.kind === "scan" || j.kind === "remove") {
+    if (j.phase === "finding") t = `Looking for photos… ${N(j.found)} found`;
+    else if (j.phase === "processing" && j.total) { t = `Reading ${N(j.done)} of ${N(j.total)}${j.eta && j.done > 30 ? ` · ~${fmtEta(j.eta)} left` : ""}`; frac = j.done / j.total; }
+    else if (j.phase === "finishing") t = "Finding duplicates, Live Photos & albums…";
+  } else if (j.total) { t = `${j.phase === "zipping" ? "Packing .zip" : j.label} · ${N(j.done)} / ${N(j.total)}`; frac = j.done / j.total; }
+  if (j.phase === "tagging" && j.total) { t = `Recognising photos · ${N(j.done)} / ${N(j.total)}`; frac = j.done / j.total; }
+  else if (j.phase === "installing") t = "Turning on smart tags…";
+  $(".pt", p).textContent = t;
+  $(".bar", p).style.width = frac == null ? "0" : (100 * frac).toFixed(1) + "%";
+  document.documentElement.style.setProperty("--hh", hdrH() + "px");
+}
+$("#pillStop").onclick = () => post("/api/job/cancel");
+function onJobDone(j) {
+  if (j.status === "error") return toast("Something went wrong: " + esc(j.error), [], { err: true, ms: 12000 });
+  if (j.status === "cancelled") { toast("Stopped. You can pick up where it left off any time."); if (j.kind === "scan") load(); return; }
+  const r = j.result || {};
+  if (j.kind === "scan") {
+    load(); smartSt = null;
+    if (r.smart_error) toast("Smart tags couldn’t run: " + esc(r.smart_error), [], { err: true, ms: 12000 });
+    const miss = (j.missing || []).length;
+    toast(`<b>Your timeline is up to date.</b><br>${N(r.shown)} photos &amp; videos${r.exact + r.similar ? ` · ${N(r.exact + r.similar)} duplicates hidden` : ""}${r.trips ? ` · ${N(r.trips)} trips` : ""}${r.albums ? ` · ${N(r.albums)} Google albums` : ""}${miss ? `<br><span class="muted">${miss} place(s) not connected right now were skipped.</span>` : ""}`);
+  } else if (j.kind === "remove") { load(); toast("Removed."); }
+  else if (j.kind === "smart") { load(); smartSt = null; toast(`<b>Smart tags are on.</b><br>${N(r.smart?.tagged)} photos recognised. Try searching “mountains” or open Things.`, [["Open Things", () => go({ v: "things" })]]); }
+  else if (j.kind === "copy") toast(`Copied ${N(r.copied)} files${r.missing ? ` (${r.missing} skipped — their drive isn’t connected)` : ""}.`, [["Show folder", () => reveal({ path: r.dest })]]);
+  else if (j.kind === "export") toast(`<b>Your album is ready to send.</b><br>${esc(r.zip ? r.zip.split(/[\\/]/).pop() : "")} ${r.zip_size ? "· " + fmtBytes(r.zip_size) : ""}`,
+    [["Show the .zip", () => reveal({ path: r.zip || r.folder })], ["Open the album page", () => reveal({ path: r.folder })]]);
+}
+
+/* ───────── lightbox ───────── */
+const LB = { list: [], i: 0, info: false, show: null };
+function openLB(list, i) { if (i < 0) return; LB.list = list; $("#lb").hidden = false; document.body.style.overflow = "hidden"; show(i); }
+function closeLB() { stopShow(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); $("#lbShuffle").classList.remove("on"); $("#lb").hidden = true; document.body.style.overflow = ""; const v = $("#lbVid"); v.pause(); v.removeAttribute("src"); v.load(); }
+function show(i) {
+  if (i < 0 || i >= LB.list.length) return;
+  LB.i = i; const it = LB.list[i];
+  const img = $("#lbImg"), vid = $("#lbVid"), msg = $("#lbMsg");
+  vid.pause(); vid.removeAttribute("src"); vid.onended = null; vid.onerror = null; vid.load(); msg.hidden = true;
+  $("#lbDate").innerHTML = `${fullDate(it.t)}<small>${it.pl != null ? esc(placeText(it.pl)) + " · " : ""}${esc(it.name)}${it.cam != null ? " · " + esc(S.cams[it.cam]) : ""}</small>`;
+  $("#lbLive").hidden = !it.live;
+  $("#lbFav").textContent = it.fav ? "♥" : "♡"; $("#lbFav").classList.toggle("on", !!it.fav);
+  $("#lbDl").href = "/file/" + it.id;
+  $("#lbPrev").style.visibility = i > 0 ? "" : "hidden";
+  $("#lbNext").style.visibility = i < LB.list.length - 1 ? "" : "hidden";
+  const missing = () => { msg.hidden = false; msg.textContent = "The original is on a drive that isn’t connected right now — showing the preview."; };
+  if (it.k === "v") {
+    img.hidden = true; vid.hidden = false; vid.poster = "/thumb/" + it.id; vid.src = "/view/" + it.id;
+    vid.onerror = () => { if (LB.list[LB.i] !== it) return; vid.hidden = true; img.hidden = false; img.src = "/thumb/" + it.id;
+      msg.hidden = false; msg.innerHTML = "This video can’t play in the browser (often HEVC/H.265 or AVI). Press ⬇ to download it, or ⓘ → Show in folder."; };
+    if (LB.show) vid.onended = () => LB.show && show((LB.i + 1) % LB.list.length);
+    vid.play().catch(() => {});
+  } else {
+    vid.hidden = true; img.hidden = false; img.src = "/thumb/" + it.id;
+    img.style.animation = "none"; void img.offsetWidth; img.style.animation = "";
+    const full = new Image();
+    full.onload = () => { if (LB.list[LB.i] === it) img.src = full.src; };
+    full.onerror = () => { if (LB.list[LB.i] === it) missing(); };
+    full.src = "/view/" + it.id;
+    for (const j of [i + 1, i - 1]) { const n = LB.list[j]; if (n && n.k === "p") new Image().src = "/view/" + n.id; }
+  }
+  if (LB.info) loadInfo(it);
+}
+const IC = {"spark": `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>`, "cal": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg>", "pin": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z\"/><circle cx=\"12\" cy=\"9\" r=\"2.5\"/></svg>", "cam": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 8h3l2-3h6l2 3h3v11H4z\"/><circle cx=\"12\" cy=\"13\" r=\"3.5\"/></svg>", "file": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14 3H6v18h12V7z\"/><path d=\"M14 3v4h4\"/></svg>", "ppl": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20a6.5 6.5 0 0 1 13 0\"/><path d=\"M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6\"/></svg>", "alb": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"6\" width=\"14\" height=\"14\" rx=\"2\"/><path d=\"M7 3h12a2 2 0 0 1 2 2v12\"/></svg>", "copy": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"8\" y=\"8\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M4 16V6a2 2 0 0 1 2-2h10\"/></svg>", "note": "<svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 5h16M4 10h16M4 15h10\"/></svg>"};
+const isMac = /Mac/i.test(navigator.platform || navigator.userAgent);
+function agoText(t) {
+  const [y, m, d] = parts(t), days = Math.floor((Date.now() - new Date(y, m - 1, d)) / 864e5);
+  if (days < 1) return "today"; if (days < 2) return "yesterday"; if (days < 30) return `${days} days ago`;
+  if (days < 365) return `${Math.round(days / 30)} month${Math.round(days / 30) > 1 ? "s" : ""} ago`;
+  const yrs = Math.floor(days / 365); return `${yrs} year${yrs > 1 ? "s" : ""} ago`;
+}
+async function loadInfo(it) {
+  const box = $("#lbInfo");
+  box.innerHTML = `<div class="ihead"><h4>Info</h4><button class="lbb ix" id="infoClose" title="Close (I)">✕</button></div><div class="iload"><i class="spin"></i></div>`;
+  $("#infoClose").onclick = toggleInfo;
+  let d; try { d = await get("/api/item/" + it.id); } catch { return; }
+  if (LB.list[LB.i] !== it) return;
+  const [dsText, dsWarn] = DS[d.date_source] || [d.date_source, false];
+  const [y, mo, dd] = parts(d.taken), dt = new Date(y, mo - 1, dd);
+  const pname = [d.place, d.admin1, d.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
+  const mp = d.width && d.height ? (d.width * d.height / 1e6) : 0;
+  const shot = d.shot || {};
+  const shotBits = [shot.aperture, shot.shutter, shot.iso, shot.focal].filter(Boolean);
+  const row = (icon, main, sub, extra = "") => `<div class="irow"><span class="iic">${icon}</span><div class="itx"><div class="imain">${main}</div>${sub ? `<div class="isub">${sub}</div>` : ""}${extra}</div></div>`;
+  const mapUrl = d.lat != null ? (isMac ? `https://maps.apple.com/?ll=${d.lat},${d.lon}&q=${encodeURIComponent(pname[0] || "Photo")}` : `https://www.google.com/maps?q=${d.lat},${d.lon}`) : "";
+  const trips = d.albums.filter(a => a.kind === "trip" || a.kind === "event"), albs = d.albums.filter(a => a.kind !== "trip" && a.kind !== "event");
+  box.innerHTML = `<div class="ihead"><h4>Info</h4><button class="lbb ix" id="infoClose" title="Close (I)">✕</button></div>
+    ${d.descr ? `<p class="icap">${esc(d.descr)}</p>` : ""}
+    <div class="isec">
+      ${row(IC.cal, `${DAYS[dt.getDay()]}, ${dd} ${MONTHS[mo - 1]} ${y}`, `${d.taken.slice(11, 16)} · ${agoText(d.taken)}`,
+        dsWarn ? `<div class="iwarn">⚠ ${esc(dsText)}</div>` : `<div class="ifaint">Date from ${esc(dsText.charAt(0).toLowerCase() + dsText.slice(1))}</div>`)}
+      ${d.lat != null ? row(IC.pin, esc(pname[0] || "Location"), esc(pname.slice(1).join(", ")),
+        `<div class="ilinks"><a href="${mapUrl}" target="_blank" rel="noopener">Open in Maps ↗</a><span class="ifaint">${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}</span></div>`)
+        : row(IC.pin, `<span class="muted">No location</span>`, "This file has no GPS information")}
+      ${d.people ? row(IC.ppl, esc(d.people), "Tagged in Google Photos") : ""}
+    </div>
+    ${(d.camera || shotBits.length) ? `<div class="isec">${row(IC.cam, esc(d.camera || "Camera"), esc(shot.lens || ""),
+        shotBits.length ? `<div class="ichips">${shotBits.map(b => `<span>${esc(b)}</span>`).join("")}</div>` : "")}</div>` : ""}
+    <div class="isec">
+      ${row(IC.file, esc(d.name), [d.width ? `${d.width} × ${d.height}${mp >= 1 ? ` · ${mp.toFixed(mp < 10 ? 1 : 0)} MP` : ""}` : "", fmtBytes(d.size), d.duration ? fmtDur(d.duration) : "", d.ext.slice(1).toUpperCase()].filter(Boolean).join(" · "),
+        `<div class="ipath" title="${esc(d.path)}">${esc(d.folder)}</div>` + (d.available
+          ? `<div class="ibtns"><button class="btn sm" id="revealBtn">Show in ${isMac ? "Finder" : "folder"}</button><a class="btn sm" href="/file/${d.id}" download>Download original</a></div>`
+          : `<div class="iwarn">The drive with this file isn’t connected</div>`))}
+    </div>
+    ${(d.tags || d.faces || d.vtext) ? `<div class="isec">${row(IC.spark, "Recognised", d.faces ? `${d.faces} ${d.faces === 1 ? "face" : "faces"}` : "",
+        `${d.tags ? `<div class="ichips links">${d.tags.split(" ").slice(0, 10).map(t => `<a href="#" data-tag="${esc(t)}">${esc(tagName(t))}</a>`).join("")}</div>` : ""}
+         ${d.vtext ? `<div class="ivtext">“${esc(d.vtext.slice(0, 220))}${d.vtext.length > 220 ? "…" : ""}”</div>` : ""}`)}</div>` : ""}
+    ${(trips.length || albs.length) ? `<div class="isec">${row(IC.alb, "In", "", `<div class="ichips links">${trips.map(a => `<a href="#" data-open-album="${a.id}">✈ ${esc(a.name)}</a>`).join("")}${albs.map(a => `<a href="#" data-open-album="${a.id}">${esc(a.name)}</a>`).join("")}</div>`)}</div>` : ""}
+    ${d.copies.length ? `<div class="isec"><details class="icopies"><summary><span class="iic">${IC.copy}</span>${d.copies.length} hidden ${d.copies.length === 1 ? "copy" : "copies"}</summary>
+        ${d.copies.map(c => `<div class="icopy"><span class="tag">${c.kind === "exact" ? "EXACT" : "LOOK-ALIKE"}</span>${esc(c.path)}</div>`).join("")}</details></div>` : ""}
+    ${d.error ? `<div class="isec"><div class="iwarn">⚠ ${esc(d.error)}</div></div>` : ""}`;
+  $("#infoClose").onclick = toggleInfo;
+  $("#revealBtn")?.addEventListener("click", () => reveal({ id: it.id }));
+  $$("[data-open-album]", box).forEach(a => a.onclick = e => { e.preventDefault(); closeLB(); openAlbum(+a.dataset.openAlbum); });
+  $$("[data-tag]", box).forEach(a => a.onclick = e => { e.preventDefault(); closeLB(); go({ v: "things", p: [a.dataset.tag] }); });
+}
+function toggleInfo() { LB.info = !LB.info; $("#lbInfo").hidden = !LB.info; $("#lbInfoBtn").classList.toggle("on", LB.info); if (LB.info) loadInfo(LB.list[LB.i]); }
+const SPEEDS = [2, 3, 4, 5, 8];
+LB.delay = (() => { try { return +localStorage.getItem("showDelay") || 3; } catch { return 3; } })();
+function startShow() {
+  stopShow(); $("#lbShow").classList.add("on"); $("#lbShow").textContent = "❚❚";
+  $("#lbSpeed").hidden = false; $("#lbSpeed").value = String(LB.delay); $("#lbShuffle").hidden = false;
+  LB.show = setInterval(() => {
+    const it = LB.list[LB.i], v = $("#lbVid");
+    if (it?.k === "v" && !v.hidden && !v.ended && !v.paused) return;   // let videos finish
+    show((LB.i + 1) % LB.list.length);
+  }, LB.delay * 1000);
+}
+function stopShow() { if (LB.show) clearInterval(LB.show); LB.show = null; $("#lbShow").classList.remove("on"); $("#lbShow").textContent = "▶"; $("#lbSpeed").hidden = true; $("#lbShuffle").hidden = true; }
+$("#lbSpeed").onchange = () => {
+  LB.delay = +$("#lbSpeed").value || 3;
+  try { localStorage.setItem("showDelay", LB.delay); } catch {}
+  startShow();
+};
+$("#lbShuffle").onclick = () => {
+  const cur = LB.list[LB.i], rest = LB.list.filter(x => x !== cur);
+  for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  LB.list = [cur, ...rest]; LB.i = 0; $("#lbShuffle").classList.add("on"); toast("Shuffled");
+};
+$("#lbFull").onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else $("#lb").requestFullscreen?.().catch(() => {}); };
+function slideshow(items) {
+  if (!items.length) return;
+  openLB(items, 0); startShow();
+  $("#lb").requestFullscreen?.().catch(() => {});
+}
+$("#lbShow").onclick = () => LB.show ? stopShow() : startShow();
+$("#lbClose").onclick = closeLB;
+$("#lbPrev").onclick = () => { stopShow(); show(LB.i - 1); };
+$("#lbNext").onclick = () => { stopShow(); show(LB.i + 1); };
+$("#lbInfoBtn").onclick = toggleInfo;
+$("#lbFav").onclick = async () => { const it = LB.list[LB.i]; await setFav([it.id], !it.fav); $("#lbFav").textContent = it.fav ? "♥" : "♡"; $("#lbFav").classList.toggle("on", !!it.fav); };
+$("#lbAlb").onclick = () => addToAlbumDialog([LB.list[LB.i].id]);
+$("#lbLive").onclick = () => {
+  const it = LB.list[LB.i], vid = $("#lbVid"), img = $("#lbImg");
+  vid.src = "/live/" + it.id; vid.hidden = false; img.hidden = true; vid.play().catch(() => {});
+  vid.onended = () => { if (LB.list[LB.i] === it) { vid.hidden = true; img.hidden = false; } };
+};
+addEventListener("keydown", e => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
+  if (MODALS.length) { if (e.key === "Escape") closeModal(MODALS[MODALS.length - 1]); return; }
+  if (!$("#lb").hidden) {
+    if (e.key === "Escape") closeLB();
+    else if (e.key === "ArrowLeft") { stopShow(); show(LB.i - 1); }
+    else if (e.key === "ArrowRight") { stopShow(); show(LB.i + 1); }
+    else if (e.key === "i" || e.key === "I") toggleInfo();
+    else if (e.key === "f" || e.key === "F") $("#lbFav").click();
+    else if (e.key === " ") { e.preventDefault(); LB.show ? stopShow() : startShow(); }
+    return;
+  }
+  if (typing) return;
+  if (e.key === "Escape" && S.sel.size) { S.sel.clear(); updateSel(); }
+  else if (e.key === "Backspace" || (e.key === "Escape" && (S.album || $("#pBack")))) {
+    if (S.album) $("#aBack")?.click(); else if (S.view === "places" || S.view === "things") $("#pBack")?.click();
+  }
+  else if (e.key === "/") { e.preventDefault(); $("#q").focus(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key === "a") { e.preventDefault(); toggleSel(viewItems().map(i => i.id), true); }
+});
+let tx = null;
+$("#lbStage").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, { passive: true });
+$("#lbStage").addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) { stopShow(); show(LB.i + (dx < 0 ? 1 : -1)); } });
+
+document.documentElement.style.setProperty("--hh", hdrH() + "px");
+{ const st = parseHash(); history.replaceState({ ...st, n: 0 }, "", navHash(st)); S.view = st.v; S.album = st.a != null ? { id: st.a } : null; S.placeSel = st.p;
+  NAV.cur = navKey(st); $$("button[data-view]").forEach(x => x.classList.toggle("on", x.dataset.view === st.v)); $$(".view").forEach(el => el.hidden = el.id !== "v-" + st.v);
+  $(".filters").hidden = (st.v === "albums" || st.v === "dups" || st.v === "trips"); document.body.classList.toggle("nofilters", $(".filters").hidden); }
+load().then(() => { if (!S.all.length && !S.stats.sources) openSetup(); });
+pollJob();
+</script>
+</body>
+</html>
